@@ -887,3 +887,85 @@
 .offer-skip:active {
   opacity: 0.6;
 }
+
+
+/* ===== ОНБОРДИНГ ===== */
+
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 400ms ease, visibility 400ms ease;
+}
+
+.onboarding-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.onboarding-card {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(24px);
+  transition: transform 420ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.onboarding-overlay.visible .onboarding-card {
+  transform: translateY(0);
+}
+
+.onboarding-emoji {
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.onboarding-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.onboarding-brand {
+  font-size: 15px;
+  color: var(--hint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+.onboarding-features {
+  list-style: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.onboarding-features li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.onboarding-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  width: 32px;
+  text-align: center;
+}

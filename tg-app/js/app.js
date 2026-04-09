@@ -31,6 +31,34 @@ const BottomSheet = {
   }
 };
 
+/* --- Онбординг (показывается один раз) --- */
+
+const Onboarding = {
+  STORAGE_KEY: 'mia_onboarding_done',
+
+  show() {
+    if (localStorage.getItem(this.STORAGE_KEY)) return;
+
+    const overlay = document.getElementById('onboarding-overlay');
+
+    // Приветствие по имени из Telegram
+    const user = TG.getUser();
+    if (user && user.first_name) {
+      document.getElementById('onboarding-title').textContent = `Привет, ${user.first_name}! 👋`;
+    }
+
+    overlay.classList.add('visible');
+
+    document.getElementById('onboarding-btn-start').addEventListener('click', () => {
+      TG.hapticLight();
+      localStorage.setItem(Onboarding.STORAGE_KEY, '1');
+      overlay.classList.remove('visible');
+      // После онбординга показать оффер
+      setTimeout(() => Offer.show(), 400);
+    });
+  }
+};
+
 /* --- Оффер при первом открытии --- */
 
 const Offer = {
@@ -116,6 +144,18 @@ document.addEventListener('DOMContentLoaded', () => {
     Success.show(order);
   });
 
-  // 6. Оффер — показываем один раз при первом запуске
-  setTimeout(() => Offer.show(), 600);
+  // 6. Кнопка «Поделиться»
+  document.getElementById('btn-share').addEventListener('click', () => {
+    TG.hapticLight();
+    const text = 'Смотри, нашла классный магазин шёлковой домашней одежды 🌸';
+    const url = 'https://t.me/sikretsweet_home_bot/app';
+    if (window.Telegram?.WebApp?.switchInlineQuery) {
+      window.Telegram.WebApp.switchInlineQuery(text);
+    } else {
+      TG.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+    }
+  });
+
+  // 7. Онбординг → затем оффер
+  setTimeout(() => Onboarding.show(), 400);
 });

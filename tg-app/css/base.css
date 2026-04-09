@@ -95,6 +95,30 @@ input, textarea {
   color: var(--text);
 }
 
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.header__icon-btn {
+  width: var(--tap-size);
+  height: var(--tap-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--hint);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 150ms;
+}
+
+.header__icon-btn:active {
+  background: var(--surface);
+}
+
 .header__cart-btn {
   position: relative;
   width: var(--tap-size);

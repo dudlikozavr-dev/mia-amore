@@ -9,9 +9,9 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <!-- Стили -->
-  <link rel="stylesheet" href="css/theme.css?v=5">
-  <link rel="stylesheet" href="css/base.css?v=5">
-  <link rel="stylesheet" href="css/components.css?v=5">
+  <link rel="stylesheet" href="css/theme.css?v=6">
+  <link rel="stylesheet" href="css/base.css?v=6">
+  <link rel="stylesheet" href="css/components.css?v=6">
 </head>
 <body>
 
@@ -23,13 +23,21 @@
     <!-- Шапка -->
     <header class="header">
       <span class="header__title">Mia-Amore</span>
-      <button class="header__cart-btn" id="btn-open-cart" aria-label="Корзина">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-        </svg>
-        <span class="header__cart-badge" id="cart-badge" hidden>0</span>
-      </button>
+      <div class="header__actions">
+        <button class="header__icon-btn" id="btn-share" aria-label="Поделиться">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </button>
+        <button class="header__cart-btn" id="btn-open-cart" aria-label="Корзина">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          <span class="header__cart-badge" id="cart-badge" hidden>0</span>
+        </button>
+      </div>
     </header>
 
     <!-- Фильтры — горизонтальный скролл с подсказками -->
@@ -285,6 +293,23 @@
   </div>
 
   <!-- ============================================
+       ОНБОРДИНГ — показывается один раз при первом входе
+       ============================================ -->
+  <div class="onboarding-overlay" id="onboarding-overlay">
+    <div class="onboarding-card">
+      <div class="onboarding-emoji">🌸</div>
+      <h2 class="onboarding-title" id="onboarding-title">Добро пожаловать!</h2>
+      <p class="onboarding-brand">Mia-Amore</p>
+      <ul class="onboarding-features">
+        <li><span class="onboarding-icon">👗</span><span>Шёлковые халаты, пижамы и сорочки</span></li>
+        <li><span class="onboarding-icon">📦</span><span>Доставка по всей России — СДЭК и Почта</span></li>
+        <li><span class="onboarding-icon">🎁</span><span>Скидка 10% на первый заказ</span></li>
+      </ul>
+      <button class="offer-btn" id="onboarding-btn-start">Смотреть каталог</button>
+    </div>
+  </div>
+
+  <!-- ============================================
        ОФФЕР — показывается один раз при первом открытии
        ============================================ -->
   <div class="offer-overlay" id="offer-overlay">
@@ -306,15 +331,15 @@
   </div>
 
   <!-- Скрипты -->
-  <script src="js/data.js?v=5"></script>
-  <script src="js/telegram.js?v=5"></script>
-  <script src="js/router.js?v=5"></script>
-  <script src="js/store.js?v=5"></script>
-  <script src="js/catalog.js?v=5"></script>
-  <script src="js/product.js?v=5"></script>
-  <script src="js/cart.js?v=5"></script>
-  <script src="js/checkout.js?v=5"></script>
-  <script src="js/success.js?v=5"></script>
-  <script src="js/app.js?v=5"></script>
+  <script src="js/data.js?v=6"></script>
+  <script src="js/telegram.js?v=6"></script>
+  <script src="js/router.js?v=6"></script>
+  <script src="js/store.js?v=6"></script>
+  <script src="js/catalog.js?v=6"></script>
+  <script src="js/product.js?v=6"></script>
+  <script src="js/cart.js?v=6"></script>
+  <script src="js/checkout.js?v=6"></script>
+  <script src="js/success.js?v=6"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 </html>
