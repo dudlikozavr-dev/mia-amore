@@ -1,0 +1,42 @@
+/* ================================================
+   ТЕМА — переменные из Telegram themeParams
+   Автоматически адаптируется к тёмной/светлой теме
+   ================================================ */
+
+:root {
+  /* Основные цвета из Telegram SDK */
+  --bg: var(--tg-theme-bg-color, #ffffff);
+  --surface: var(--tg-theme-secondary-bg-color, #f2f2f7);
+  --text: var(--tg-theme-text-color, #000000);
+  --hint: var(--tg-theme-hint-color, #8e8e93);
+  --link: var(--tg-theme-link-color, #2AABEE);
+  --button: var(--tg-theme-button-color, #2AABEE);
+  --button-text: var(--tg-theme-button-text-color, #ffffff);
+  --header-bg: var(--tg-theme-header-bg-color, #ffffff);
+
+  /* Акцентные цвета магазина */
+  --accent: var(--button);
+  --danger: #FF3B30;
+  --success: #34C759;
+
+  /* Размеры */
+  --header-h: 56px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --tap-size: 44px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Тени — адаптивные к теме */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-sheet: 0 -4px 24px rgba(0, 0, 0, 0.12);
+
+  /* Анимация */
+  --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --duration: 250ms;
+}
+
+/* Тёмная тема — усиление теней */
+html[style*="--tg-theme-bg-color: #"] {
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.2);
+  --shadow-sheet: 0 -4px 24px rgba(0, 0, 0, 0.4);
+}

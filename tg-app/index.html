@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mia-Amore</title>
+
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Стили -->
+  <link rel="stylesheet" href="css/theme.css?v=5">
+  <link rel="stylesheet" href="css/base.css?v=5">
+  <link rel="stylesheet" href="css/components.css?v=5">
+</head>
+<body>
+
+  <!-- ============================================
+       ЭКРАН 1: КАТАЛОГ — главная страница
+       ============================================ -->
+  <section id="screen-catalog" class="screen active">
+
+    <!-- Шапка -->
+    <header class="header">
+      <span class="header__title">Mia-Amore</span>
+      <button class="header__cart-btn" id="btn-open-cart" aria-label="Корзина">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        <span class="header__cart-badge" id="cart-badge" hidden>0</span>
+      </button>
+    </header>
+
+    <!-- Фильтры — горизонтальный скролл с подсказками -->
+    <div class="filters-wrap" id="filters-wrap">
+    <div class="filters" id="filters">
+      <button class="chip chip--active" data-filter="all">Все</button>
+      <button class="chip" data-filter="robe">Халаты</button>
+      <button class="chip" data-filter="pijama">Пижамы</button>
+      <button class="chip" data-filter="nightgown">Сорочки</button>
+      <button class="chip" data-filter="set">Комплекты</button>
+      <button class="chip" data-filter="silk">Шёлк</button>
+      <button class="chip" data-filter="satin">Сатин</button>
+    </div>
+    </div>
+
+    <!-- Сетка товаров -->
+    <div class="catalog-grid" id="catalog-grid">
+      <!-- Заполняется из JS -->
+    </div>
+
+    <!-- Пустое состояние -->
+    <div class="empty-state" id="catalog-empty" hidden>
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <circle cx="40" cy="40" r="36" stroke="var(--hint)" stroke-width="2" stroke-dasharray="6 4"/>
+        <path d="M30 42c0-5.5 4.5-10 10-10s10 4.5 10 10" stroke="var(--hint)" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="33" cy="35" r="2" fill="var(--hint)"/>
+        <circle cx="47" cy="35" r="2" fill="var(--hint)"/>
+      </svg>
+      <p class="empty-state__text">Ничего не найдено</p>
+      <button class="btn btn--secondary" id="btn-reset-filters">Сбросить фильтры</button>
+    </div>
+  </section>
+
+  <!-- ============================================
+       ЭКРАН 2: КАРТОЧКА ТОВАРА
+       ============================================ -->
+  <section id="screen-product" class="screen">
+
+    <!-- Галерея фото -->
+    <div class="gallery" id="product-gallery">
+      <div class="gallery__track" id="gallery-track">
+        <!-- Фото добавляются из JS -->
+      </div>
+      <div class="gallery__dots" id="gallery-dots"></div>
+    </div>
+
+    <!-- Информация о товаре -->
+    <div class="product-info" id="product-info">
+      <h1 class="product-info__name" id="product-name"></h1>
+      <div class="product-info__price-row">
+        <span class="product-info__price" id="product-price"></span>
+        <span class="product-info__old-price" id="product-old-price"></span>
+      </div>
+      <p class="product-info__material" id="product-material"></p>
+      <p class="product-info__stock" id="product-stock" hidden></p>
+
+      <!-- Выбор размера -->
+      <div class="product-info__section">
+        <div class="product-info__section-header">
+          <span class="product-info__label">Размер</span>
+          <button class="link-btn" id="btn-size-chart">Таблица размеров</button>
+        </div>
+        <div class="size-chips" id="size-chips">
+          <!-- Чипы из JS -->
+        </div>
+      </div>
+
+      <!-- Выбор цвета -->
+      <div class="product-info__section" id="color-section" hidden>
+        <span class="product-info__label">Цвет: <span id="color-name"></span></span>
+        <div class="color-swatches" id="color-swatches"></div>
+      </div>
+
+      <!-- Описание -->
+      <div class="product-info__section">
+        <p class="product-info__desc" id="product-desc"></p>
+        <button class="link-btn" id="btn-desc-toggle" hidden>Подробнее</button>
+        <div class="product-info__care" id="product-care" hidden></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       ЭКРАН 3: КОРЗИНА
+       ============================================ -->
+  <section id="screen-cart" class="screen">
+
+    <header class="header header--centered">
+      <h2 class="header__title">Корзина</h2>
+    </header>
+
+    <!-- Список товаров в корзине -->
+    <div class="cart-items" id="cart-items">
+      <!-- Заполняется из JS -->
+    </div>
+
+    <!-- Пустая корзина -->
+    <div class="empty-state" id="cart-empty" hidden>
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <circle cx="40" cy="40" r="36" stroke="var(--hint)" stroke-width="2" stroke-dasharray="6 4"/>
+        <path d="M28 30h24l-3 20H31L28 30z" stroke="var(--hint)" stroke-width="2" stroke-linejoin="round"/>
+        <line x1="36" y1="38" x2="36" y2="44" stroke="var(--hint)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="44" y1="38" x2="44" y2="44" stroke="var(--hint)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <p class="empty-state__text">Корзина пуста</p>
+      <button class="btn btn--primary" id="btn-to-catalog">Перейти в каталог</button>
+    </div>
+
+    <!-- Блок итого -->
+    <div class="cart-summary" id="cart-summary" hidden>
+      <div class="cart-summary__row">
+        <span id="cart-items-count">Товары (0)</span>
+        <span id="cart-items-total">0 ₽</span>
+      </div>
+      <div class="cart-summary__row cart-summary__row--discount" id="cart-discount-row" hidden>
+        <span>Скидка 10%</span>
+        <span id="cart-discount">0 ₽</span>
+      </div>
+      <div class="cart-summary__row">
+        <span>Доставка</span>
+        <span id="cart-delivery">300 ₽</span>
+      </div>
+      <div class="cart-summary__hint" id="cart-free-delivery-hint" hidden>
+        <!-- Подсказка о бесплатной доставке -->
+      </div>
+      <div class="cart-summary__row cart-summary__row--total">
+        <span>Итого</span>
+        <span id="cart-total">0 ₽</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       ЭКРАН 4: ОФОРМЛЕНИЕ ЗАКАЗА
+       ============================================ -->
+  <section id="screen-checkout" class="screen">
+
+    <header class="header header--centered">
+      <h2 class="header__title">Оформление</h2>
+    </header>
+
+    <form class="checkout-form" id="checkout-form" novalidate>
+
+      <!-- Контакты -->
+      <fieldset class="form-section">
+        <legend class="form-section__title">Контакты</legend>
+        <input type="text" class="input" id="input-name" placeholder="Ваше имя" autocomplete="name">
+        <input type="tel" class="input" id="input-phone" placeholder="Телефон" autocomplete="tel">
+      </fieldset>
+
+      <!-- Доставка -->
+      <fieldset class="form-section">
+        <legend class="form-section__title">Доставка</legend>
+        <input type="text" class="input" id="input-city" placeholder="Город" autocomplete="address-level2">
+        <textarea class="input input--textarea" id="input-address" placeholder="Улица, дом, квартира" rows="2"></textarea>
+
+        <div class="option-cards" id="delivery-options">
+          <button type="button" class="option-card option-card--active" data-delivery="cdek">
+            <span class="option-card__title">СДЭК</span>
+            <span class="option-card__desc">от 300 ₽, 3–5 дней</span>
+          </button>
+          <button type="button" class="option-card" data-delivery="post">
+            <span class="option-card__title">Почта России</span>
+            <span class="option-card__desc">от 250 ₽, 5–10 дней</span>
+          </button>
+        </div>
+      </fieldset>
+
+      <!-- Оплата -->
+      <fieldset class="form-section">
+        <legend class="form-section__title">Оплата</legend>
+        <div class="option-cards" id="payment-options">
+          <button type="button" class="option-card option-card--active" data-payment="cod">
+            <span class="option-card__title">При получении</span>
+            <span class="option-card__desc">Наличными или картой курьеру</span>
+          </button>
+          <button type="button" class="option-card" data-payment="online">
+            <span class="option-card__title">Онлайн</span>
+            <span class="option-card__desc">Telegram Pay</span>
+          </button>
+        </div>
+      </fieldset>
+
+      <!-- Комментарий -->
+      <fieldset class="form-section">
+        <textarea class="input input--textarea" id="input-comment" placeholder="Комментарий к заказу (необязательно)" rows="2"></textarea>
+      </fieldset>
+
+      <!-- Итого -->
+      <div class="checkout-total" id="checkout-total">
+        <div class="checkout-total__row">
+          <span>Товары</span><span id="checkout-items-total">0 ₽</span>
+        </div>
+        <div class="checkout-total__row checkout-total__row--discount" id="checkout-discount-row" hidden>
+          <span>Скидка 10%</span><span id="checkout-discount">0 ₽</span>
+        </div>
+        <div class="checkout-total__row">
+          <span>Доставка</span><span id="checkout-delivery">300 ₽</span>
+        </div>
+        <div class="checkout-total__row checkout-total__row--total">
+          <span>Итого</span><span id="checkout-grand-total">0 ₽</span>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- ============================================
+       ЭКРАН 5: ПОДТВЕРЖДЕНИЕ ЗАКАЗА
+       ============================================ -->
+  <section id="screen-success" class="screen">
+    <div class="success">
+      <div class="success__icon">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="30" stroke="#34C759" stroke-width="3"/>
+          <path d="M20 33l8 8 16-16" stroke="#34C759" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 class="success__title">Заказ оформлен!</h2>
+      <p class="success__order-id" id="success-order-id">Заказ #0000</p>
+      <p class="success__hint">Ожидайте сообщение от бота с деталями доставки</p>
+
+      <div class="success__summary" id="success-summary">
+        <!-- Заполняется из JS -->
+      </div>
+
+      <button class="btn btn--primary btn--wide" id="btn-back-catalog">Вернуться в каталог</button>
+    </div>
+  </section>
+
+  <!-- ============================================
+       BOTTOM SHEET: ТАБЛИЦА РАЗМЕРОВ
+       ============================================ -->
+  <div class="bottom-sheet" id="sheet-sizes" hidden>
+    <div class="bottom-sheet__backdrop"></div>
+    <div class="bottom-sheet__content">
+      <div class="bottom-sheet__handle"></div>
+      <h3 class="bottom-sheet__title">Как выбрать размер</h3>
+      <table class="size-table">
+        <thead>
+          <tr><th>Размер</th><th>Грудь</th><th>Талия</th><th>Бёдра</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>XS</td><td>82–86</td><td>60–64</td><td>88–92</td></tr>
+          <tr><td>S</td><td>86–90</td><td>64–68</td><td>92–96</td></tr>
+          <tr><td>M</td><td>90–94</td><td>68–72</td><td>96–100</td></tr>
+          <tr><td>L</td><td>94–100</td><td>72–78</td><td>100–106</td></tr>
+          <tr><td>XL</td><td>100–106</td><td>78–84</td><td>106–112</td></tr>
+        </tbody>
+      </table>
+      <p class="bottom-sheet__hint">Не уверены? Напишите в чат — поможем подобрать размер</p>
+      <button class="btn btn--primary btn--wide" id="btn-chat-size">Написать в чат</button>
+    </div>
+  </div>
+
+  <!-- ============================================
+       ОФФЕР — показывается один раз при первом открытии
+       ============================================ -->
+  <div class="offer-overlay" id="offer-overlay">
+    <div class="offer-card" id="offer-card">
+      <div class="offer-emoji">🎁</div>
+      <h2 class="offer-title">Скидка 10% на первый заказ</h2>
+      <p class="offer-subtitle">Подпишитесь на бота — получите промокод в личное сообщение</p>
+      <ul class="offer-bullets">
+        <li>🧦 Первыми узнаёте о новых коллекциях</li>
+        <li>🎁 Эксклюзивные акции</li>
+        <li>🌙 Сезонные скидки</li>
+        <li>📦 Бесплатная доставка при заказе от 2 вещей</li>
+      </ul>
+      <button class="offer-btn" id="offer-btn-subscribe">
+        Получить скидку 10%
+      </button>
+      <button class="offer-skip" id="offer-btn-skip">Пропустить</button>
+    </div>
+  </div>
+
+  <!-- Скрипты -->
+  <script src="js/data.js?v=5"></script>
+  <script src="js/telegram.js?v=5"></script>
+  <script src="js/router.js?v=5"></script>
+  <script src="js/store.js?v=5"></script>
+  <script src="js/catalog.js?v=5"></script>
+  <script src="js/product.js?v=5"></script>
+  <script src="js/cart.js?v=5"></script>
+  <script src="js/checkout.js?v=5"></script>
+  <script src="js/success.js?v=5"></script>
+  <script src="js/app.js?v=5"></script>
+</body>
+</html>

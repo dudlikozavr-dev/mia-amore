@@ -1,0 +1,207 @@
+/* ================================================
+   БАЗОВЫЕ СТИЛИ — reset, типографика, safe area
+   ================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Фикс: CSS display не должен перекрывать HTML-атрибут hidden */
+[hidden] { display: none !important; }
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+  font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Убираем выделение текста на интерактивных элементах */
+button, a, input, textarea {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ===== ЭКРАНЫ ===== */
+
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg);
+  /* Скрыт по умолчанию */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(30px);
+  transition:
+    opacity var(--duration) var(--ease),
+    transform var(--duration) var(--ease),
+    visibility var(--duration);
+  padding-bottom: calc(20px + var(--safe-bottom));
+}
+
+.screen.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  z-index: 1;
+}
+
+/* Анимация «назад» — экран уходит влево */
+.screen.slide-out-left {
+  transform: translateX(-30px);
+  opacity: 0;
+}
+
+/* ===== ШАПКА ===== */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-h);
+  padding: 0 16px;
+  background: var(--bg);
+}
+
+.header--centered {
+  justify-content: center;
+}
+
+.header__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.header__cart-btn {
+  position: relative;
+  width: var(--tap-size);
+  height: var(--tap-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 150ms;
+}
+
+.header__cart-btn:active {
+  background: var(--surface);
+}
+
+.header__cart-badge {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  color: #fff;
+  background: var(--danger);
+  border-radius: 9px;
+}
+
+/* Анимация пульса при обновлении бейджа */
+@keyframes badge-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+.header__cart-badge.pulse {
+  animation: badge-pulse 300ms var(--ease);
+}
+
+/* ===== КНОПКИ ===== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-size);
+  padding: 0 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 150ms, transform 80ms;
+}
+
+.btn:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+.btn--primary {
+  background: var(--button);
+  color: var(--button-text);
+}
+
+.btn--secondary {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.btn--wide {
+  width: 100%;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--link);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.link-btn:active {
+  opacity: 0.6;
+}
+
+/* ===== ПУСТОЕ СОСТОЯНИЕ ===== */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 32px;
+  text-align: center;
+  gap: 16px;
+}
+
+.empty-state__text {
+  font-size: 16px;
+  color: var(--hint);
+}
