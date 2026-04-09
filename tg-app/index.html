@@ -8,13 +8,24 @@
   <meta http-equiv="Expires" content="0">
   <title>Mia-Amore</title>
 
+  <!-- Принудительный сброс кеша Telegram Desktop/WebView.
+       Один редирект за сессию — добавляет уникальный timestamp в URL. -->
+  <script>
+    (function () {
+      if (!sessionStorage.getItem('_nocache')) {
+        sessionStorage.setItem('_nocache', '1');
+        location.replace('/?' + Math.floor(Date.now() / 1000));
+      }
+    })();
+  </script>
+
   <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <!-- Стили -->
-  <link rel="stylesheet" href="css/theme.css?v=8">
-  <link rel="stylesheet" href="css/base.css?v=8">
-  <link rel="stylesheet" href="css/components.css?v=8">
+  <link rel="stylesheet" href="css/theme.css?v=9">
+  <link rel="stylesheet" href="css/base.css?v=9">
+  <link rel="stylesheet" href="css/components.css?v=9">
 </head>
 <body>
 
@@ -460,18 +471,18 @@
   </div>
 
   <!-- Скрипты -->
-  <script src="js/data.js?v=8"></script>
-  <script src="js/telegram.js?v=8"></script>
-  <script src="js/router.js?v=8"></script>
-  <script src="js/store.js?v=8"></script>
-  <script src="js/catalog.js?v=8"></script>
-  <script src="js/favorites.js?v=8"></script>
-  <script src="js/profile.js?v=8"></script>
-  <script src="js/bottomnav.js?v=8"></script>
-  <script src="js/product.js?v=8"></script>
-  <script src="js/cart.js?v=8"></script>
-  <script src="js/checkout.js?v=8"></script>
-  <script src="js/success.js?v=8"></script>
-  <script src="js/app.js?v=8"></script>
+  <script src="js/data.js?v=9"></script>
+  <script src="js/telegram.js?v=9"></script>
+  <script src="js/router.js?v=9"></script>
+  <script src="js/store.js?v=9"></script>
+  <script src="js/catalog.js?v=9"></script>
+  <script src="js/favorites.js?v=9"></script>
+  <script src="js/profile.js?v=9"></script>
+  <script src="js/bottomnav.js?v=9"></script>
+  <script src="js/product.js?v=9"></script>
+  <script src="js/cart.js?v=9"></script>
+  <script src="js/checkout.js?v=9"></script>
+  <script src="js/success.js?v=9"></script>
+  <script src="js/app.js?v=9"></script>
 </body>
 </html>
