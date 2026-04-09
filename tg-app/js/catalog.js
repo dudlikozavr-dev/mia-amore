@@ -63,11 +63,29 @@ const Catalog = {
     empty.hidden = true;
     grid.innerHTML = items.map(p => Catalog._cardHTML(p)).join('');
 
-    // Обработчики кликов по карточкам
+    // Обработчики кликов по карточкам (игнорировать клик на сердце)
     grid.querySelectorAll('.product-card').forEach(card => {
-      card.addEventListener('click', () => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.product-card__heart')) return;
         const id = parseInt(card.dataset.id);
         Router.go('product', id);
+      });
+    });
+
+    // Обработчики кнопок «избранное»
+    grid.querySelectorAll('.product-card__heart').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = parseInt(btn.dataset.heartId);
+        const isNow = Favorites.toggle(id);
+        btn.classList.toggle('product-card__heart--active', isNow);
+        // Анимация пульса
+        btn.classList.remove('heart-pop');
+        btn.offsetHeight; // reflow
+        btn.classList.add('heart-pop');
+        // Обновить SVG fill
+        const path = btn.querySelector('svg path');
+        if (path) path.setAttribute('fill', isNow ? 'currentColor' : 'none');
       });
     });
 
@@ -89,12 +107,20 @@ const Catalog = {
       ? `<span class="product-card__old-price">${Catalog._fmt(p.oldPrice)}</span>`
       : '';
 
+    const isFav = typeof Favorites !== 'undefined' && Favorites.has(p.id);
+
     return `
       <article class="product-card" data-id="${p.id}">
         <div class="product-card__img-wrap">
           ${badge}
           <img class="product-card__img" src="${p.images[0]}" alt="${p.name}"
                data-loading="true" loading="lazy" width="300" height="400">
+          <button class="product-card__heart ${isFav ? 'product-card__heart--active' : ''}"
+                  data-heart-id="${p.id}" aria-label="В избранное">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
         </div>
         <div class="product-card__body">
           <div class="product-card__name">${p.name}</div>

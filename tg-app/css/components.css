@@ -969,3 +969,281 @@
   width: 32px;
   text-align: center;
 }
+
+
+/* ===== НИЖНЯЯ НАВИГАЦИЯ ===== */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(60px + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: var(--bg);
+  border-top: 1px solid var(--surface);
+  display: flex;
+  align-items: stretch;
+  z-index: 200;
+  transition: transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+
+.bottom-nav--hidden {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bottom-nav__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--hint);
+  transition: color 200ms;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav__item--active {
+  color: #D48C8C;
+}
+
+/* Контейнер для иконки с бейджем */
+.bottom-nav__pos-rel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-nav__icon {
+  width: 24px;
+  height: 24px;
+  transition: transform 150ms var(--ease);
+  display: block;
+}
+
+.bottom-nav__item--active .bottom-nav__icon {
+  transform: scale(1.1);
+}
+
+/* Заполненное сердце и дом у активной вкладки */
+.bottom-nav__item[data-tab="favorites"].bottom-nav__item--active .bottom-nav__icon path {
+  fill: #D48C8C;
+}
+
+.bottom-nav__label {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.bottom-nav__badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  color: #fff;
+  background: var(--danger);
+  border-radius: 8px;
+  z-index: 1;
+}
+
+
+/* ===== КНОПКА ИЗБРАННОГО НА КАРТОЧКЕ ===== */
+
+.product-card__heart {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.82);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--hint);
+  z-index: 3;
+  transition: color 200ms, transform 150ms, background 150ms;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.product-card__heart:active {
+  transform: scale(0.88);
+}
+
+.product-card__heart--active {
+  color: #D48C8C;
+}
+
+.product-card__heart--active svg {
+  fill: #D48C8C;
+}
+
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+.product-card__heart.heart-pop {
+  animation: heart-pop 300ms var(--ease);
+}
+
+
+/* ===== ПУСТОЕ СОСТОЯНИЕ (доп. текст-подсказка) ===== */
+
+.empty-state__hint {
+  font-size: 13px;
+  color: var(--hint);
+  text-align: center;
+  margin-top: -8px;
+}
+
+
+/* ===== КОРЗИНА — sticky summary над нижней навигацией ===== */
+
+#screen-cart.screen--has-nav .cart-summary {
+  bottom: calc(60px + var(--safe-bottom));
+}
+
+
+/* ===== ПРОФИЛЬ ===== */
+
+.profile-content {
+  padding: 0 16px 16px;
+}
+
+.profile-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 0 24px;
+  border-bottom: 1px solid var(--surface);
+  margin-bottom: 4px;
+}
+
+.profile-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--surface);
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.profile-username {
+  font-size: 14px;
+  color: var(--hint);
+  margin-top: 2px;
+}
+
+.profile-section {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--surface);
+}
+
+.profile-section:last-of-type {
+  border-bottom: none;
+}
+
+.profile-section__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+
+/* Скидка */
+.profile-discount-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(52, 199, 89, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.profile-discount-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.profile-discount-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--success);
+}
+
+.profile-discount-sub {
+  font-size: 13px;
+  color: var(--hint);
+  margin-top: 2px;
+}
+
+/* Кнопки действий */
+.profile-action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--surface);
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: opacity 150ms;
+}
+
+.profile-action-btn:last-child {
+  border-bottom: none;
+}
+
+.profile-action-btn:active {
+  opacity: 0.6;
+}
+
+.profile-action-btn svg {
+  color: var(--hint);
+  flex-shrink: 0;
+}
+
+.profile-app-info {
+  text-align: center;
+  font-size: 12px;
+  color: var(--hint);
+  padding: 16px 0 8px;
+}

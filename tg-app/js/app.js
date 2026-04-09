@@ -116,6 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 4. Инициализация всех экранов
   Catalog.init();
+  Favorites.init();
+  Profile.init();
+  BottomNav.init();
   Product.init();
   Cart.init();
   Checkout.init();
@@ -126,22 +129,41 @@ document.addEventListener('DOMContentLoaded', () => {
     TG.hideMainButton();
     TG.hideBackButton();
     Catalog.render();
+    BottomNav.setActive('catalog');
   });
 
-  Router.onEnter('product', (productId) => {
-    Product.show(productId);
+  Router.onEnter('favorites', () => {
+    TG.hideMainButton();
+    TG.hideBackButton();
+    Favorites.render();
+    BottomNav.setActive('favorites');
+  });
+
+  Router.onEnter('profile', () => {
+    TG.hideMainButton();
+    TG.hideBackButton();
+    Profile.show();
+    BottomNav.setActive('profile');
   });
 
   Router.onEnter('cart', () => {
     Cart.show();
+    BottomNav.setActive('cart');
+  });
+
+  Router.onEnter('product', (productId) => {
+    Product.show(productId);
+    BottomNav.setActive('product');
   });
 
   Router.onEnter('checkout', () => {
     Checkout.show();
+    BottomNav.setActive('checkout');
   });
 
   Router.onEnter('success', (order) => {
     Success.show(order);
+    BottomNav.setActive('success');
   });
 
   // 6. Кнопка «Поделиться»

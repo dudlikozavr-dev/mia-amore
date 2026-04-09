@@ -213,6 +213,11 @@ input, textarea {
   opacity: 0.6;
 }
 
+/* Экраны, где есть нижняя навигация — дополнительный отступ снизу */
+.screen--has-nav {
+  padding-bottom: calc(60px + var(--safe-bottom) + 20px);
+}
+
 /* ===== ПУСТОЕ СОСТОЯНИЕ ===== */
 
 .empty-state {

@@ -9,16 +9,16 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <!-- Стили -->
-  <link rel="stylesheet" href="css/theme.css?v=6">
-  <link rel="stylesheet" href="css/base.css?v=6">
-  <link rel="stylesheet" href="css/components.css?v=6">
+  <link rel="stylesheet" href="css/theme.css?v=7">
+  <link rel="stylesheet" href="css/base.css?v=7">
+  <link rel="stylesheet" href="css/components.css?v=7">
 </head>
 <body>
 
   <!-- ============================================
        ЭКРАН 1: КАТАЛОГ — главная страница
        ============================================ -->
-  <section id="screen-catalog" class="screen active">
+  <section id="screen-catalog" class="screen screen--has-nav active">
 
     <!-- Шапка -->
     <header class="header">
@@ -123,7 +123,7 @@
   <!-- ============================================
        ЭКРАН 3: КОРЗИНА
        ============================================ -->
-  <section id="screen-cart" class="screen">
+  <section id="screen-cart" class="screen screen--has-nav">
 
     <header class="header header--centered">
       <h2 class="header__title">Корзина</h2>
@@ -268,6 +268,132 @@
   </section>
 
   <!-- ============================================
+       ЭКРАН 6: ИЗБРАННОЕ
+       ============================================ -->
+  <section id="screen-favorites" class="screen screen--has-nav">
+
+    <header class="header header--centered">
+      <h2 class="header__title">Избранное</h2>
+    </header>
+
+    <div class="catalog-grid" id="favorites-grid"></div>
+
+    <div class="empty-state" id="favorites-empty" hidden>
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <circle cx="40" cy="40" r="36" stroke="var(--hint)" stroke-width="2" stroke-dasharray="6 4"/>
+        <path d="M52.7 27.3a12 12 0 0 0-16.97 0L40 31.6l4.27-4.3a12 12 0 0 1 16.97 16.97L40 56l-21.24-11.73A12 12 0 0 1 27.3 27.3L40 31.6l12.7-4.3z" stroke="var(--hint)" stroke-width="2" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <p class="empty-state__text">Список желаний пуст</p>
+      <p class="empty-state__hint">Нажмите ❤️ на карточке, чтобы добавить товар</p>
+      <button class="btn btn--primary" id="btn-to-catalog-from-fav">Перейти в каталог</button>
+    </div>
+  </section>
+
+  <!-- ============================================
+       ЭКРАН 7: ПРОФИЛЬ
+       ============================================ -->
+  <section id="screen-profile" class="screen screen--has-nav">
+
+    <header class="header header--centered">
+      <h2 class="header__title">Профиль</h2>
+    </header>
+
+    <div class="profile-content">
+
+      <!-- Аватар и имя -->
+      <div class="profile-user">
+        <div class="profile-avatar">🌸</div>
+        <div class="profile-user__info">
+          <div class="profile-name" id="profile-name">—</div>
+          <div class="profile-username" id="profile-username">Добро пожаловать!</div>
+        </div>
+      </div>
+
+      <!-- Мой размер -->
+      <div class="profile-section">
+        <div class="profile-section__title">Мой размер</div>
+        <div class="size-chips">
+          <button class="size-chip profile-size-chip" data-size="XS">XS</button>
+          <button class="size-chip profile-size-chip" data-size="S">S</button>
+          <button class="size-chip profile-size-chip" data-size="M">M</button>
+          <button class="size-chip profile-size-chip" data-size="L">L</button>
+          <button class="size-chip profile-size-chip" data-size="XL">XL</button>
+        </div>
+      </div>
+
+      <!-- Скидка -->
+      <div class="profile-section" id="profile-discount-row" hidden>
+        <div class="profile-discount-card">
+          <span class="profile-discount-emoji">🎁</span>
+          <div>
+            <div class="profile-discount-title">Скидка 10% активна</div>
+            <div class="profile-discount-sub">Применяется к каждому заказу</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Действия -->
+      <div class="profile-section">
+        <button class="profile-action-btn" id="btn-profile-share">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Рассказать подругам
+        </button>
+        <button class="profile-action-btn" id="btn-profile-support">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Написать в поддержку
+        </button>
+      </div>
+
+      <p class="profile-app-info">Mia-Amore · v1.0</p>
+    </div>
+  </section>
+
+  <!-- ============================================
+       НИЖНЯЯ НАВИГАЦИЯ
+       ============================================ -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="bottom-nav__item bottom-nav__item--active" data-tab="catalog" aria-label="Главная">
+      <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span class="bottom-nav__label">Главная</span>
+    </button>
+
+    <button class="bottom-nav__item" data-tab="favorites" aria-label="Избранное">
+      <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+      <span class="bottom-nav__label">Избранное</span>
+    </button>
+
+    <button class="bottom-nav__item" data-tab="cart" aria-label="Корзина">
+      <span class="bottom-nav__pos-rel">
+        <span class="bottom-nav__badge" id="nav-cart-badge" hidden>0</span>
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+      </span>
+      <span class="bottom-nav__label">Корзина</span>
+    </button>
+
+    <button class="bottom-nav__item" data-tab="profile" aria-label="Профиль">
+      <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span class="bottom-nav__label">Профиль</span>
+    </button>
+  </nav>
+
+  <!-- ============================================
        BOTTOM SHEET: ТАБЛИЦА РАЗМЕРОВ
        ============================================ -->
   <div class="bottom-sheet" id="sheet-sizes" hidden>
@@ -331,15 +457,18 @@
   </div>
 
   <!-- Скрипты -->
-  <script src="js/data.js?v=6"></script>
-  <script src="js/telegram.js?v=6"></script>
-  <script src="js/router.js?v=6"></script>
-  <script src="js/store.js?v=6"></script>
-  <script src="js/catalog.js?v=6"></script>
-  <script src="js/product.js?v=6"></script>
-  <script src="js/cart.js?v=6"></script>
-  <script src="js/checkout.js?v=6"></script>
-  <script src="js/success.js?v=6"></script>
-  <script src="js/app.js?v=6"></script>
+  <script src="js/data.js?v=7"></script>
+  <script src="js/telegram.js?v=7"></script>
+  <script src="js/router.js?v=7"></script>
+  <script src="js/store.js?v=7"></script>
+  <script src="js/catalog.js?v=7"></script>
+  <script src="js/favorites.js?v=7"></script>
+  <script src="js/profile.js?v=7"></script>
+  <script src="js/bottomnav.js?v=7"></script>
+  <script src="js/product.js?v=7"></script>
+  <script src="js/cart.js?v=7"></script>
+  <script src="js/checkout.js?v=7"></script>
+  <script src="js/success.js?v=7"></script>
+  <script src="js/app.js?v=7"></script>
 </body>
 </html>
