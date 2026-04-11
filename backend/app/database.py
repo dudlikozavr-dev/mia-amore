@@ -1,4 +1,3 @@
-import ssl
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
@@ -6,19 +5,19 @@ from app.config import settings
 # Конвертируем postgresql:// → postgresql+asyncpg://
 db_url = settings.database_url.replace(
     "postgresql://", "postgresql+asyncpg://"
+).replace(
+    "postgres://", "postgresql+asyncpg://"
 )
-
-# SSL без проверки сертификата (Supabase использует self-signed CA)
-ssl_ctx = ssl.create_default_context()
-ssl_ctx.check_hostname = False
-ssl_ctx.verify_mode = ssl.CERT_NONE
 
 engine = create_async_engine(
     db_url,
     echo=settings.is_dev,
     pool_size=5,
     max_overflow=10,
-    connect_args={"ssl": ssl_ctx},
+    connect_args={
+        "ssl": "require",
+        "statement_cache_size": 0,  # обязательно для Supabase PgBouncer
+    },
 )
 
 AsyncSessionLocal = async_sessionmaker(
