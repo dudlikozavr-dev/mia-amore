@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
 from app.database import get_db
 from app.models.category import Category
@@ -85,6 +86,7 @@ async def get_products(
         select(Product)
         .where(Product.is_active == True)
         .order_by(Product.sort_order)
+        .options(selectinload(Product.images), selectinload(Product.category))
     )
 
     if category and category != "all":
@@ -93,32 +95,10 @@ async def get_products(
     result = await db.execute(query)
     products = result.scalars().all()
 
-    # Загружаем первое фото для каждого товара
     items = []
     for p in products:
-        cover = None
-        if p.images:
-            cover = storage.get_url(p.images[0])
-        elif not p.images:
-            # Подгружаем изображения отдельно
-            img_result = await db.execute(
-                select(ProductImage)
-                .where(ProductImage.product_id == p.id)
-                .order_by(ProductImage.sort_order)
-                .limit(1)
-            )
-            img = img_result.scalar_one_or_none()
-            if img:
-                cover = storage.get_url(img)
-
-        cat_slug = None
-        if p.category_id:
-            cat_result = await db.execute(
-                select(Category).where(Category.id == p.category_id)
-            )
-            cat = cat_result.scalar_one_or_none()
-            if cat:
-                cat_slug = cat.slug
+        cover = storage.get_url(p.images[0]) if p.images else None
+        cat_slug = p.category.slug if p.category else None
 
         items.append(ProductListItem(
             id=p.id,
