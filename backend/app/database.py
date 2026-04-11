@@ -15,7 +15,7 @@ engine = create_async_engine(
     pool_size=5,
     max_overflow=10,
     connect_args={
-        "ssl": "require",
+        "ssl": True,
         "statement_cache_size": 0,  # обязательно для Supabase PgBouncer
     },
 )
