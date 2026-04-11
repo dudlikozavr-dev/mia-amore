@@ -12,9 +12,15 @@
 /* Фикс: CSS display не должен перекрывать HTML-атрибут hidden */
 [hidden] { display: none !important; }
 
-html, body {
+html {
   height: 100%;
+  /* overflow только на html — не на body, иначе Chromium/WebView ломает position:fixed */
   overflow-x: hidden;
+}
+
+body {
+  height: 100%;
+  /* НЕ ставим overflow на body — это делает body scroll container и ломает position:fixed */
   font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.4;
@@ -213,9 +219,9 @@ input, textarea {
   opacity: 0.6;
 }
 
-/* Экраны, где есть нижняя навигация — дополнительный отступ снизу */
+/* Отступ снизу чтобы контент не прятался за fixed nav */
 .screen--has-nav {
-  padding-bottom: calc(60px + var(--safe-bottom) + 20px);
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 16px);
 }
 
 /* ===== ПУСТОЕ СОСТОЯНИЕ ===== */

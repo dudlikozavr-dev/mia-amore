@@ -978,20 +978,18 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: calc(60px + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
-  background: var(--bg);
-  border-top: 1px solid var(--surface);
+  /* 56px контента + отступ под Android/iOS системный бар навигации */
+  height: calc(56px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--bg, #ffffff);
+  border-top: 1px solid var(--surface, #e5e5ea);
   display: flex;
   align-items: stretch;
-  z-index: 200;
-  transition: transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+  z-index: 9999;
 }
 
 .bottom-nav--hidden {
-  transform: translateY(100%);
-  opacity: 0;
-  pointer-events: none;
+  display: none;
 }
 
 .bottom-nav__item {
@@ -1000,13 +998,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   padding: 0;
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--hint);
-  transition: color 200ms;
+  color: #8e8e93;
+  transition: color 180ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1023,26 +1021,35 @@
 }
 
 .bottom-nav__icon {
-  width: 24px;
-  height: 24px;
-  transition: transform 150ms var(--ease);
+  width: 26px;
+  height: 26px;
   display: block;
+  transition: transform 150ms ease;
 }
 
+/* Активная вкладка: иконка чуть крупнее */
 .bottom-nav__item--active .bottom-nav__icon {
-  transform: scale(1.1);
+  transform: scale(1.08);
 }
 
-/* Заполненное сердце и дом у активной вкладки */
-.bottom-nav__item[data-tab="favorites"].bottom-nav__item--active .bottom-nav__icon path {
+/* Активная вкладка: заливаем все fillable части иконки */
+.bottom-nav__item--active .bottom-nav__icon .nav-icon-fill {
   fill: #D48C8C;
+  stroke: #D48C8C;
+}
+
+/* Профиль — solid иконка (полная заливка) */
+.bottom-nav__item[data-tab="profile"].bottom-nav__item--active .bottom-nav__icon path,
+.bottom-nav__item[data-tab="profile"].bottom-nav__item--active .bottom-nav__icon circle {
+  fill: #D48C8C;
+  stroke: #D48C8C;
 }
 
 .bottom-nav__label {
   font-size: 10px;
   font-weight: 500;
   line-height: 1;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 
 .bottom-nav__badge {

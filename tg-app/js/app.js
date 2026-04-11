@@ -178,6 +178,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 7. Онбординг → затем оффер
+  // 7. Фикс позиции nav для Telegram Desktop.
+  // Telegram рендерит свой нативный бар поверх WebView снизу,
+  // из-за чего viewportHeight < innerHeight и nav уходит под бар.
+  (function fixNavForTelegram() {
+    const nav = document.getElementById('bottom-nav');
+    if (!nav) return;
+
+    function update() {
+      const tgVH = window.Telegram?.WebApp?.viewportHeight;
+      const innerH = window.innerHeight;
+      if (tgVH && Math.round(tgVH) < Math.round(innerH)) {
+        nav.style.bottom = (innerH - tgVH) + 'px';
+      } else {
+        nav.style.bottom = '0px';
+      }
+    }
+
+    update();
+    window.addEventListener('resize', update);
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.onEvent('viewportChanged', update);
+    }
+  })();
+
+  // 8. Онбординг → затем оффер
   setTimeout(() => Onboarding.show(), 400);
 });
