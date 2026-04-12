@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Заказы — Mia-Amore Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: #f5f5f5; color: #1c1c1e; }
+
+    .header { background: #1c1c1e; color: #fff; padding: 16px 24px; }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .nav { background: #fff; border-bottom: 1px solid #e5e5ea;
+           display: flex; gap: 0; overflow-x: auto; }
+    .nav a { padding: 12px 20px; font-size: 14px; font-weight: 500;
+             color: #636366; text-decoration: none; white-space: nowrap;
+             border-bottom: 2px solid transparent; }
+    .nav a.active, .nav a:hover { color: #1c1c1e; border-bottom-color: #1c1c1e; }
+
+    .main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+    .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+               flex-wrap: wrap; }
+    .toolbar h2 { font-size: 18px; font-weight: 600; flex: 1; }
+    .toolbar input { padding: 8px 12px; border: 1px solid #c7c7cc; border-radius: 8px;
+                     font-size: 14px; width: 220px; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btn { padding: 6px 14px; border: 1px solid #c7c7cc; border-radius: 20px;
+                  font-size: 13px; cursor: pointer; background: #fff; }
+    .filter-btn.active { background: #1c1c1e; color: #fff; border-color: #1c1c1e; }
+
+    .table-wrap { background: #fff; border-radius: 12px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 16px; font-size: 12px; font-weight: 600;
+         color: #636366; background: #f9f9fb; text-transform: uppercase; letter-spacing:.04em; }
+    td { padding: 12px 16px; font-size: 14px; border-top: 1px solid #f2f2f7; vertical-align: middle; }
+    tr:hover td { background: #f9f9fb; cursor: pointer; }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 20px;
+             font-size: 12px; font-weight: 500; }
+    .badge-new       { background: #e3f0ff; color: #0066cc; }
+    .badge-confirmed { background: #e8f5e9; color: #2e7d32; }
+    .badge-shipped   { background: #fff3e0; color: #e65100; }
+    .badge-delivered { background: #e8f5e9; color: #1b5e20; }
+    .badge-cancelled { background: #ffebee; color: #b71c1c; }
+
+    .btn { padding: 8px 14px; border: none; border-radius: 8px; font-size: 13px;
+           font-weight: 500; cursor: pointer; }
+    .btn-primary { background: #1c1c1e; color: #fff; }
+    .btn-ghost { background: transparent; border: 1px solid #c7c7cc; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+    .loader { text-align: center; padding: 40px; color: #636366; }
+
+    /* Detail drawer */
+    #drawer { position: fixed; right: 0; top: 0; bottom: 0; width: 420px;
+              background: #fff; box-shadow: -4px 0 20px rgba(0,0,0,.1);
+              transform: translateX(100%); transition: transform .25s ease;
+              overflow-y: auto; z-index: 50; }
+    #drawer.open { transform: translateX(0); }
+    .drawer-header { padding: 20px; border-bottom: 1px solid #f2f2f7;
+                     display: flex; align-items: center; justify-content: space-between; }
+    .drawer-header h3 { font-size: 16px; font-weight: 600; }
+    .drawer-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #636366; }
+    .drawer-body { padding: 20px; }
+    .detail-row { display: flex; justify-content: space-between; margin-bottom: 12px;
+                  font-size: 14px; padding-bottom: 12px; border-bottom: 1px solid #f2f2f7; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: #636366; }
+    .items-list { list-style: none; margin: 12px 0; }
+    .items-list li { padding: 8px 0; font-size: 14px; border-bottom: 1px solid #f2f2f7; }
+    .items-list li:last-child { border-bottom: none; }
+    .status-select { width: 100%; padding: 8px 12px; border: 1px solid #c7c7cc;
+                     border-radius: 8px; font-size: 14px; margin: 16px 0 8px; }
+  </style>
+</head>
+<body>
+<div class="header"><h1>Mia-Amore Admin</h1></div>
+<nav class="nav">
+  <a href="index.html">Дашборд</a>
+  <a href="orders.html" class="active">Заказы</a>
+  <a href="products.html">Товары</a>
+</nav>
+
+<div class="main">
+  <div class="toolbar">
+    <h2>Заказы</h2>
+    <input type="search" id="search" placeholder="Имя, телефон, номер..." oninput="loadOrders()">
+  </div>
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-status="" onclick="setFilter(this,'')">Все</button>
+    <button class="filter-btn" data-status="new" onclick="setFilter(this,'new')">Новые</button>
+    <button class="filter-btn" data-status="confirmed" onclick="setFilter(this,'confirmed')">Подтверждённые</button>
+    <button class="filter-btn" data-status="shipped" onclick="setFilter(this,'shipped')">Отправленные</button>
+    <button class="filter-btn" data-status="delivered" onclick="setFilter(this,'delivered')">Доставленные</button>
+    <button class="filter-btn" data-status="cancelled" onclick="setFilter(this,'cancelled')">Отменённые</button>
+  </div>
+
+  <br>
+  <div class="table-wrap">
+    <div id="orders-container"><div class="loader">Загрузка...</div></div>
+  </div>
+</div>
+
+<!-- Детальная панель -->
+<div id="drawer">
+  <div class="drawer-header">
+    <h3 id="drawer-title">Заказ</h3>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</div>
+
+<script>
+const API = '';
+let currentStatus = '';
+
+function getToken() { return localStorage.getItem('mia_admin_token') || ''; }
+function headers()  { return { 'Authorization': 'Bearer ' + getToken() }; }
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API + path, { ...opts, headers: { ...headers(), ...(opts.headers||{}) } });
+  if (!res.ok) { const b = await res.json().catch(()=>({})); throw new Error(b.detail || res.status); }
+  return res.json();
+}
+
+function setFilter(btn, status) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentStatus = status;
+  loadOrders();
+}
+
+async function loadOrders() {
+  const search = document.getElementById('search').value.trim();
+  let url = '/admin/orders?';
+  if (currentStatus) url += `status=${currentStatus}&`;
+  if (search) url += `search=${encodeURIComponent(search)}`;
+
+  try {
+    const orders = await apiFetch(url);
+    if (!orders.length) {
+      document.getElementById('orders-container').innerHTML =
+        '<div class="loader">Заказов нет</div>';
+      return;
+    }
+    document.getElementById('orders-container').innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Номер</th><th>Покупатель</th><th>Телефон</th>
+          <th>Сумма</th><th>Статус</th><th>Дата</th>
+        </tr></thead>
+        <tbody>
+          ${orders.map(o => `
+            <tr onclick="openOrder(${o.id})">
+              <td><strong>${o.order_number}</strong></td>
+              <td>${o.buyer_name}</td>
+              <td style="color:#636366">${o.buyer_phone}</td>
+              <td>${o.total.toLocaleString('ru-RU')} ₽</td>
+              <td><span class="badge badge-${o.status}">${statusLabel(o.status)}</span></td>
+              <td style="color:#636366">${o.created_at}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  } catch (e) {
+    document.getElementById('orders-container').innerHTML =
+      `<div class="loader" style="color:#ff3b30">Ошибка: ${e.message}</div>`;
+  }
+}
+
+async function openOrder(id) {
+  document.getElementById('drawer-body').innerHTML = '<div class="loader">Загрузка...</div>';
+  document.getElementById('drawer').classList.add('open');
+
+  try {
+    const o = await apiFetch(`/admin/orders/${id}`);
+    document.getElementById('drawer-title').textContent = `Заказ ${o.order_number}`;
+
+    const deliveryLabels = { cdek: 'СДЭК', post: 'Почта России' };
+    const paymentLabels = { cod: 'При получении', online: 'Онлайн' };
+
+    document.getElementById('drawer-body').innerHTML = `
+      <div class="detail-row"><span class="detail-label">Статус</span>
+        <span class="badge badge-${o.status}">${statusLabel(o.status)}</span></div>
+      <div class="detail-row"><span class="detail-label">Покупатель</span>
+        <span>${o.buyer_name}${o.buyer_username ? ` (@${o.buyer_username})` : ''}</span></div>
+      <div class="detail-row"><span class="detail-label">Телефон</span>
+        <a href="tel:${o.buyer_phone}">${o.buyer_phone}</a></div>
+      <div class="detail-row"><span class="detail-label">Адрес</span>
+        <span>${o.city}, ${o.address}</span></div>
+      <div class="detail-row"><span class="detail-label">Доставка</span>
+        <span>${deliveryLabels[o.delivery_method] || o.delivery_method}</span></div>
+      <div class="detail-row"><span class="detail-label">Оплата</span>
+        <span>${paymentLabels[o.payment_method] || o.payment_method}</span></div>
+      ${o.notes ? `<div class="detail-row"><span class="detail-label">Комментарий</span>
+        <span>${o.notes}</span></div>` : ''}
+
+      <strong style="font-size:13px;color:#636366;display:block;margin:16px 0 8px">ТОВАРЫ</strong>
+      <ul class="items-list">
+        ${o.items.map(i => `
+          <li>
+            <strong>${i.product_name}</strong><br>
+            <span style="color:#636366">${i.size}, ${i.color} ×${i.qty} — ${(i.unit_price * i.qty).toLocaleString('ru-RU')} ₽</span>
+          </li>
+        `).join('')}
+      </ul>
+
+      <div class="detail-row"><span class="detail-label">Подитог</span>
+        <span>${o.subtotal.toLocaleString('ru-RU')} ₽</span></div>
+      <div class="detail-row"><span class="detail-label">Доставка</span>
+        <span>${o.delivery_cost.toLocaleString('ru-RU')} ₽</span></div>
+      <div class="detail-row"><span class="detail-label"><strong>Итого</strong></span>
+        <span><strong>${o.total.toLocaleString('ru-RU')} ₽</strong></span></div>
+
+      <strong style="font-size:13px;color:#636366;display:block;margin:16px 0 4px">ИЗМЕНИТЬ СТАТУС</strong>
+      <select class="status-select" id="status-select-${o.id}">
+        ${['new','confirmed','shipped','delivered','cancelled'].map(s =>
+          `<option value="${s}" ${s===o.status?'selected':''}>${statusLabel(s)}</option>`
+        ).join('')}
+      </select>
+      <button class="btn btn-primary" style="width:100%"
+        onclick="changeStatus(${o.id})">Сохранить статус</button>
+      <p id="status-msg-${o.id}" style="font-size:13px;margin-top:8px;color:#2e7d32;display:none">
+        Статус обновлён</p>
+    `;
+  } catch(e) {
+    document.getElementById('drawer-body').innerHTML =
+      `<p style="color:#ff3b30">Ошибка: ${e.message}</p>`;
+  }
+}
+
+async function changeStatus(orderId) {
+  const sel = document.getElementById(`status-select-${orderId}`);
+  try {
+    await apiFetch(`/admin/orders/${orderId}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: sel.value }),
+    });
+    const msg = document.getElementById(`status-msg-${orderId}`);
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 3000);
+    loadOrders();
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
+  }
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+}
+
+function statusLabel(s) {
+  return { new:'Новый', confirmed:'Подтверждён', shipped:'Отправлен',
+           delivered:'Доставлен', cancelled:'Отменён' }[s] || s;
+}
+
+// Открыть сразу если в URL есть якорь #id
+if (location.hash) {
+  const id = parseInt(location.hash.slice(1));
+  if (id) setTimeout(() => openOrder(id), 500);
+}
+
+if (!getToken()) { location.href = 'index.html'; } else { loadOrders(); }
+</script>
+</body>
+</html>

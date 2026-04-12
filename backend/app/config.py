@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     # CORS
     frontend_url: str = "http://localhost:3000"
 
+    # URL бэкенда (для регистрации webhook)
+    # Пример: https://mia-amore-api.up.railway.app
+    backend_url: str = ""
+
     @property
     def is_dev(self) -> bool:
         return self.environment == "development"

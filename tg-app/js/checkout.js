@@ -119,38 +119,70 @@ const Checkout = {
 
     TG.showMainButtonProgress();
 
-    // Имитация отправки на сервер (1 секунда)
-    await new Promise(r => setTimeout(r, 1000));
+    const buyerName = document.getElementById('input-name').value.trim();
+    const buyerPhone = document.getElementById('input-phone').value.trim();
+    const city = document.getElementById('input-city').value.trim();
+    const address = document.getElementById('input-address').value.trim();
+    const notes = document.getElementById('input-notes')?.value.trim() || null;
 
-    TG.hideMainButtonProgress();
+    const storeItems = Store.getItems();
+    const subtotal = Store.getSubtotal();
+    const discount = Store.getDiscountAmount();
+    const delivery = Store.getDelivery(Checkout._delivery);
+    const total = subtotal - discount + delivery;
 
-    // Собираем данные заказа
-    const order = {
-      id: Math.floor(1000 + Math.random() * 9000),
-      items: Store.getItems().map(item => {
-        const p = PRODUCTS.find(prod => prod.id === item.productId);
-        return {
-          name: p?.name || 'Товар',
+    try {
+      // Реальный запрос к бэкенду
+      const result = await createOrder({
+        buyer_name: buyerName,
+        buyer_phone: buyerPhone,
+        city,
+        address,
+        notes: notes || null,
+        delivery_method: Checkout._delivery,
+        payment_method: Checkout._payment,
+        items: storeItems.map(item => ({
+          product_id: item.productId,
+          product_name: item.name,
           size: item.size,
           color: item.color,
           qty: item.qty,
-          price: p?.price || 0
-        };
-      }),
-      subtotal: Store.getSubtotal(),
-      delivery: Store.getDelivery(Checkout._delivery),
-      deliveryMethod: Checkout._delivery === 'cdek' ? 'СДЭК' : 'Почта России',
-      payment: Checkout._payment === 'cod' ? 'При получении' : 'Онлайн',
-      address: `${document.getElementById('input-city').value}, ${document.getElementById('input-address').value}`,
-      name: document.getElementById('input-name').value,
-      phone: document.getElementById('input-phone').value
-    };
+          unit_price: item.price,
+        })),
+      });
 
-    // Очистить корзину
-    Store.clear();
+      TG.hideMainButtonProgress();
 
-    // Перейти к экрану успеха
-    Router.go('success', order);
+      // Данные для экрана успеха
+      const order = {
+        id: result.id,
+        orderNumber: result.order_number,
+        items: storeItems.map(item => ({
+          name: item.name,
+          size: item.size,
+          color: item.color,
+          qty: item.qty,
+          price: item.price,
+        })),
+        subtotal,
+        delivery,
+        deliveryMethod: Checkout._delivery === 'cdek' ? 'СДЭК' : 'Почта России',
+        payment: Checkout._payment === 'cod' ? 'При получении' : 'Онлайн',
+        address: `${city}, ${address}`,
+        name: buyerName,
+        phone: buyerPhone,
+        total,
+      };
+
+      Store.clear();
+      Router.go('success', order);
+
+    } catch (err) {
+      TG.hideMainButtonProgress();
+      TG.hapticError();
+      // Показываем ошибку через нативный Telegram alert
+      window.Telegram?.WebApp?.showAlert(`Не удалось оформить заказ: ${err.message}`);
+    }
   },
 
   /** Форматирование цены */

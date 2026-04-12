@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mia-Amore Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: #f5f5f5; color: #1c1c1e; }
+
+    .header { background: #1c1c1e; color: #fff; padding: 16px 24px;
+              display: flex; align-items: center; justify-content: space-between; }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .header .env-badge { font-size: 12px; background: #ff3b30; border-radius: 4px;
+                         padding: 2px 8px; }
+    .header .env-badge.dev { background: #ff9500; }
+
+    .nav { background: #fff; border-bottom: 1px solid #e5e5ea;
+           display: flex; gap: 0; overflow-x: auto; }
+    .nav a { padding: 12px 20px; font-size: 14px; font-weight: 500;
+             color: #636366; text-decoration: none; white-space: nowrap;
+             border-bottom: 2px solid transparent; }
+    .nav a.active, .nav a:hover { color: #1c1c1e; border-bottom-color: #1c1c1e; }
+
+    .main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+    /* Auth overlay */
+    #auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5);
+                    display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .auth-card { background: #fff; padding: 32px; border-radius: 12px;
+                 width: 340px; text-align: center; }
+    .auth-card h2 { margin-bottom: 16px; }
+    .auth-card input { width: 100%; padding: 10px 12px; border: 1px solid #c7c7cc;
+                       border-radius: 8px; font-size: 14px; margin-bottom: 12px; }
+    .auth-card .btn { width: 100%; }
+
+    /* Кнопки */
+    .btn { padding: 10px 16px; border: none; border-radius: 8px; font-size: 14px;
+           font-weight: 500; cursor: pointer; }
+    .btn-primary { background: #1c1c1e; color: #fff; }
+    .btn-primary:hover { background: #3a3a3c; }
+    .btn-danger { background: #ff3b30; color: #fff; }
+    .btn-danger:hover { background: #d70015; }
+    .btn-ghost { background: transparent; border: 1px solid #c7c7cc; color: #1c1c1e; }
+    .btn-ghost:hover { background: #f2f2f7; }
+    .btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 6px; }
+
+    /* Карточки-статы */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 20px; }
+    .stat-card .label { font-size: 13px; color: #636366; margin-bottom: 8px; }
+    .stat-card .value { font-size: 28px; font-weight: 700; }
+    .stat-card .sub { font-size: 12px; color: #636366; margin-top: 4px; }
+
+    /* Таблица */
+    .table-wrap { background: #fff; border-radius: 12px; overflow: hidden; }
+    .table-toolbar { padding: 16px 20px; display: flex; align-items: center;
+                     gap: 12px; border-bottom: 1px solid #f2f2f7; }
+    .table-toolbar h2 { font-size: 16px; font-weight: 600; flex: 1; }
+    .table-toolbar input { padding: 8px 12px; border: 1px solid #c7c7cc;
+                           border-radius: 8px; font-size: 14px; width: 220px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 16px; font-size: 12px; font-weight: 600;
+         color: #636366; background: #f9f9fb; text-transform: uppercase;
+         letter-spacing: .04em; }
+    td { padding: 12px 16px; font-size: 14px; border-top: 1px solid #f2f2f7; vertical-align: middle; }
+    tr:hover td { background: #f9f9fb; }
+
+    /* Бейджи статусов */
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 20px;
+             font-size: 12px; font-weight: 500; }
+    .badge-new       { background: #e3f0ff; color: #0066cc; }
+    .badge-confirmed { background: #e8f5e9; color: #2e7d32; }
+    .badge-shipped   { background: #fff3e0; color: #e65100; }
+    .badge-delivered { background: #e8f5e9; color: #1b5e20; }
+    .badge-cancelled { background: #ffebee; color: #b71c1c; }
+
+    /* Loader */
+    .loader { text-align: center; padding: 40px; color: #636366; font-size: 14px; }
+
+    .section-link { display: inline-flex; align-items: center; gap: 8px;
+                    text-decoration: none; color: inherit; font-size: 14px;
+                    padding: 8px 0; }
+    .section-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- Авторизация -->
+<div id="auth-overlay">
+  <div class="auth-card">
+    <h2>Mia-Amore Admin</h2>
+    <p style="font-size:14px;color:#636366;margin-bottom:20px">Введите Bearer-токен из .env</p>
+    <input type="password" id="token-input" placeholder="admin_api_token" autocomplete="off">
+    <button class="btn btn-primary" onclick="login()">Войти</button>
+    <p id="auth-error" style="color:#ff3b30;font-size:13px;margin-top:12px;display:none">Неверный токен</p>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+  <div class="header">
+    <h1>Mia-Amore Admin</h1>
+    <span class="env-badge" id="env-badge">prod</span>
+  </div>
+  <nav class="nav">
+    <a href="index.html" class="active">Дашборд</a>
+    <a href="orders.html">Заказы</a>
+    <a href="products.html">Товары</a>
+  </nav>
+
+  <div class="main">
+    <div class="stats" id="stats">
+      <div class="loader">Загрузка...</div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-toolbar">
+        <h2>Последние заказы</h2>
+        <a href="orders.html" style="font-size:14px;color:#0066cc">Все заказы →</a>
+      </div>
+      <div id="recent-orders"><div class="loader">Загрузка...</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';   // Если открываем с бэкенда — пустая строка (relative)
+
+function getToken() { return localStorage.getItem('mia_admin_token') || ''; }
+function headers()  { return { 'Authorization': 'Bearer ' + getToken() }; }
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API + path, { ...opts, headers: { ...headers(), ...(opts.headers||{}) } });
+  if (res.status === 403) { logout(); throw new Error('Нет доступа'); }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || res.status);
+  }
+  return res.json();
+}
+
+async function login() {
+  const token = document.getElementById('token-input').value.trim();
+  if (!token) return;
+  localStorage.setItem('mia_admin_token', token);
+  try {
+    await apiFetch('/health');
+    showApp();
+  } catch {
+    document.getElementById('auth-error').style.display = 'block';
+    localStorage.removeItem('mia_admin_token');
+  }
+}
+
+function logout() {
+  localStorage.removeItem('mia_admin_token');
+  location.reload();
+}
+
+function showApp() {
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadDashboard();
+}
+
+async function loadDashboard() {
+  // Env badge
+  try {
+    const health = await apiFetch('/health');
+    const badge = document.getElementById('env-badge');
+    badge.textContent = health.env;
+    if (health.env === 'development') badge.classList.add('dev');
+  } catch {}
+
+  // Заказы для статистики
+  try {
+    const orders = await apiFetch('/admin/orders');
+    const total = orders.reduce((s, o) => s + o.total, 0);
+    const newCount = orders.filter(o => o.status === 'new').length;
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat-card">
+        <div class="label">Заказов всего</div>
+        <div class="value">${orders.length}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Новых заказов</div>
+        <div class="value" style="color:#0066cc">${newCount}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Выручка</div>
+        <div class="value">${total.toLocaleString('ru-RU')} ₽</div>
+        <div class="sub">все заказы</div>
+      </div>
+    `;
+
+    // Последние 10
+    const recent = orders.slice(0, 10);
+    document.getElementById('recent-orders').innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Номер</th><th>Покупатель</th><th>Сумма</th>
+          <th>Статус</th><th>Дата</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${recent.map(o => `
+            <tr>
+              <td><strong>${o.order_number}</strong></td>
+              <td>${o.buyer_name}</td>
+              <td>${o.total.toLocaleString('ru-RU')} ₽</td>
+              <td><span class="badge badge-${o.status}">${statusLabel(o.status)}</span></td>
+              <td style="color:#636366">${o.created_at}</td>
+              <td><a href="orders.html#${o.id}" class="btn btn-ghost btn-sm">Открыть</a></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (e) {
+    document.getElementById('stats').innerHTML = `<p style="color:#ff3b30">Ошибка: ${e.message}</p>`;
+  }
+}
+
+function statusLabel(s) {
+  return { new:'Новый', confirmed:'Подтверждён', shipped:'Отправлен',
+           delivered:'Доставлен', cancelled:'Отменён' }[s] || s;
+}
+
+// Init
+document.getElementById('token-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+
+if (getToken()) {
+  apiFetch('/health').then(showApp).catch(() => {});
+}
+</script>
+</body>
+</html>

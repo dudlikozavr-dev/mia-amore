@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Товары — Mia-Amore Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: #f5f5f5; color: #1c1c1e; }
+    .header { background: #1c1c1e; color: #fff; padding: 16px 24px; }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .nav { background: #fff; border-bottom: 1px solid #e5e5ea; display: flex; overflow-x: auto; }
+    .nav a { padding: 12px 20px; font-size: 14px; font-weight: 500; color: #636366;
+             text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; }
+    .nav a.active, .nav a:hover { color: #1c1c1e; border-bottom-color: #1c1c1e; }
+    .main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+    .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .toolbar h2 { font-size: 18px; font-weight: 600; flex: 1; }
+
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .product-card { background: #fff; border-radius: 12px; overflow: hidden; }
+    .product-card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; background: #f2f2f7; }
+    .product-card .no-photo { width: 100%; aspect-ratio: 3/4; background: #f2f2f7;
+                               display: flex; align-items: center; justify-content: center;
+                               font-size: 32px; }
+    .product-info { padding: 14px; }
+    .product-info .name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .product-info .meta { font-size: 13px; color: #636366; margin-bottom: 10px; }
+    .product-info .price { font-size: 16px; font-weight: 700; }
+    .product-info .price .old { font-size: 13px; color: #636366; text-decoration: line-through;
+                                 margin-left: 6px; font-weight: 400; }
+    .product-actions { padding: 0 14px 14px; display: flex; gap: 8px; }
+
+    .btn { padding: 8px 14px; border: none; border-radius: 8px; font-size: 13px;
+           font-weight: 500; cursor: pointer; }
+    .btn-primary { background: #1c1c1e; color: #fff; }
+    .btn-primary:hover { background: #3a3a3c; }
+    .btn-ghost { background: transparent; border: 1px solid #c7c7cc; }
+    .btn-ghost:hover { background: #f2f2f7; }
+    .btn-danger { background: #ff3b30; color: #fff; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+    .loader { text-align: center; padding: 40px; color: #636366; }
+
+    .badge-inactive { display: inline-block; font-size: 11px; background: #ffebee;
+                      color: #b71c1c; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+
+    /* Modal */
+    #modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.5);
+                display: none; align-items: flex-start; justify-content: center;
+                overflow-y: auto; padding: 24px; z-index: 100; }
+    #modal-bg.open { display: flex; }
+    #modal { background: #fff; border-radius: 16px; width: 100%; max-width: 560px;
+             padding: 28px; position: relative; }
+    #modal h3 { font-size: 18px; margin-bottom: 20px; }
+    .form-row { margin-bottom: 16px; }
+    .form-row label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: #636366; }
+    .form-row input, .form-row select, .form-row textarea {
+      width: 100%; padding: 9px 12px; border: 1px solid #c7c7cc; border-radius: 8px;
+      font-size: 14px; font-family: inherit; }
+    .form-row textarea { min-height: 80px; resize: vertical; }
+    .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
+
+    /* Upload zone */
+    .upload-zone { border: 2px dashed #c7c7cc; border-radius: 8px; padding: 20px;
+                   text-align: center; cursor: pointer; font-size: 14px; color: #636366; }
+    .upload-zone:hover, .upload-zone.drag { border-color: #1c1c1e; background: #f9f9fb; }
+    .photos-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .photo-thumb { position: relative; width: 72px; }
+    .photo-thumb img { width: 72px; height: 96px; object-fit: cover; border-radius: 6px; }
+    .photo-thumb .del-btn { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px;
+                             background: #ff3b30; color: #fff; border: none; border-radius: 50%;
+                             cursor: pointer; font-size: 12px; line-height: 20px; text-align: center; }
+  </style>
+</head>
+<body>
+<div class="header"><h1>Mia-Amore Admin</h1></div>
+<nav class="nav">
+  <a href="index.html">Дашборд</a>
+  <a href="orders.html">Заказы</a>
+  <a href="products.html" class="active">Товары</a>
+</nav>
+
+<div class="main">
+  <div class="toolbar">
+    <h2>Товары</h2>
+    <button class="btn btn-primary" onclick="openModal()">+ Добавить товар</button>
+  </div>
+  <div id="products-grid" class="products-grid">
+    <div class="loader" style="grid-column:1/-1">Загрузка...</div>
+  </div>
+</div>
+
+<!-- Modal: форма редактирования -->
+<div id="modal-bg" onclick="e => { if(e.target===this) closeModal(); }">
+  <div id="modal">
+    <h3 id="modal-title">Новый товар</h3>
+    <form id="product-form" onsubmit="saveProduct(event)">
+      <input type="hidden" id="f-id">
+
+      <div class="form-row">
+        <label>Название</label>
+        <input type="text" id="f-name" required placeholder="Халат «Bella»">
+      </div>
+
+      <div class="form-2col">
+        <div class="form-row">
+          <label>Категория</label>
+          <select id="f-category"></select>
+        </div>
+        <div class="form-row">
+          <label>Материал (slug)</label>
+          <input type="text" id="f-material" placeholder="silk">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Материал (отображение)</label>
+        <input type="text" id="f-material-label" placeholder="Шёлк 100%, 19 momme">
+      </div>
+
+      <div class="form-2col">
+        <div class="form-row">
+          <label>Цена, ₽</label>
+          <input type="number" id="f-price" required min="1">
+        </div>
+        <div class="form-row">
+          <label>Старая цена, ₽</label>
+          <input type="number" id="f-old-price" min="0" placeholder="нет">
+        </div>
+      </div>
+
+      <div class="form-2col">
+        <div class="form-row">
+          <label>Остаток, шт.</label>
+          <input type="number" id="f-stock" value="0" min="0">
+        </div>
+        <div class="form-row">
+          <label>Бейдж</label>
+          <select id="f-badge">
+            <option value="">нет</option>
+            <option value="hit">Хит</option>
+            <option value="new">Новинка</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Размеры (через запятую)</label>
+        <input type="text" id="f-sizes" placeholder="XS, S, M, L, XL">
+      </div>
+
+      <div class="form-row">
+        <label>Недоступные размеры (через запятую)</label>
+        <input type="text" id="f-disabled-sizes" placeholder="XL">
+      </div>
+
+      <div class="form-row">
+        <label>Цвета (JSON)</label>
+        <textarea id="f-colors" style="min-height:60px"
+          placeholder='[{"name":"Чёрный","hex":"#1C1C1E"}]'></textarea>
+      </div>
+
+      <div class="form-row">
+        <label>Описание</label>
+        <textarea id="f-description"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label>Уход</label>
+        <textarea id="f-care" style="min-height:60px"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label>Фотографии</label>
+        <div class="photos-row" id="photos-row"></div>
+        <div class="upload-zone" id="upload-zone"
+             onclick="document.getElementById('file-input').click()"
+             ondragover="e=>{e.preventDefault();this.classList.add('drag')}"
+             ondragleave="e=>{this.classList.remove('drag')}"
+             ondrop="handleDrop(event)">
+          Нажмите или перетащите фото (JPEG, PNG, WebP, до 10 МБ)
+        </div>
+        <input type="file" id="file-input" accept="image/*" multiple
+               style="display:none" onchange="handleFiles(this.files)">
+      </div>
+
+      <div class="form-row" style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="f-active" checked style="width:auto">
+        <label for="f-active" style="margin:0;color:#1c1c1e;font-size:14px">Товар активен</label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+        <button type="submit" class="btn btn-primary" id="save-btn">Сохранить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const API = '';
+let categories = [];
+let currentProductId = null;
+
+function getToken() { return localStorage.getItem('mia_admin_token') || ''; }
+function headers(extra={}) { return { 'Authorization': 'Bearer ' + getToken(), ...extra }; }
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API + path, { ...opts, headers: { ...headers(), ...(opts.headers||{}) } });
+  if (!res.ok) { const b = await res.json().catch(()=>({})); throw new Error(b.detail || res.status); }
+  return opts.returnRaw ? res : res.json();
+}
+
+async function loadCategories() {
+  categories = await apiFetch('/admin/categories');
+  const sel = document.getElementById('f-category');
+  sel.innerHTML = '<option value="">Без категории</option>' +
+    categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+async function loadProducts() {
+  try {
+    const products = await apiFetch('/admin/products');
+    if (!products.length) {
+      document.getElementById('products-grid').innerHTML =
+        '<div class="loader" style="grid-column:1/-1">Товаров нет</div>';
+      return;
+    }
+    document.getElementById('products-grid').innerHTML = products.map(p => {
+      const cover = p.images[0]?.url || null;
+      return `
+        <div class="product-card">
+          ${cover
+            ? `<img src="${cover}" alt="${p.name}" loading="lazy">`
+            : '<div class="no-photo">📷</div>'
+          }
+          <div class="product-info">
+            <div class="name">${p.name}
+              ${!p.is_active ? '<span class="badge-inactive">скрыт</span>' : ''}
+            </div>
+            <div class="meta">${p.material_label || ''} · Остаток: ${p.stock} шт.</div>
+            <div class="price">${p.price.toLocaleString('ru-RU')} ₽
+              ${p.old_price ? `<span class="old">${p.old_price.toLocaleString('ru-RU')} ₽</span>` : ''}
+            </div>
+          </div>
+          <div class="product-actions">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="editProduct(${p.id})">Изменить</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id}, '${p.name}')">Скрыть</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('products-grid').innerHTML =
+      `<div class="loader" style="color:#ff3b30;grid-column:1/-1">Ошибка: ${e.message}</div>`;
+  }
+}
+
+async function openModal(product = null) {
+  currentProductId = product?.id || null;
+  document.getElementById('modal-title').textContent = product ? 'Редактировать товар' : 'Новый товар';
+  document.getElementById('f-id').value = product?.id || '';
+  document.getElementById('f-name').value = product?.name || '';
+  document.getElementById('f-material').value = product?.material || '';
+  document.getElementById('f-material-label').value = product?.material_label || '';
+  document.getElementById('f-price').value = product?.price || '';
+  document.getElementById('f-old-price').value = product?.old_price || '';
+  document.getElementById('f-stock').value = product?.stock ?? 0;
+  document.getElementById('f-badge').value = product?.badge || '';
+  document.getElementById('f-sizes').value = (product?.sizes || []).join(', ');
+  document.getElementById('f-disabled-sizes').value = (product?.disabled_sizes || []).join(', ');
+  document.getElementById('f-colors').value = product?.colors
+    ? JSON.stringify(product.colors, null, 2) : '';
+  document.getElementById('f-description').value = product?.description || '';
+  document.getElementById('f-care').value = product?.care || '';
+  document.getElementById('f-active').checked = product?.is_active !== false;
+
+  // Категория
+  document.getElementById('f-category').value = product?.category_id || '';
+
+  // Фото
+  renderPhotos(product?.images || []);
+
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function renderPhotos(images) {
+  document.getElementById('photos-row').innerHTML = images.map(img => `
+    <div class="photo-thumb" id="img-${img.id}">
+      <img src="${img.url}" alt="">
+      <button class="del-btn" onclick="deleteImage(${img.id}, ${currentProductId})" title="Удалить">✕</button>
+    </div>
+  `).join('');
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+  currentProductId = null;
+}
+
+async function editProduct(id) {
+  try {
+    const p = await apiFetch(`/admin/products/${id}`);
+    openModal(p);
+  } catch(e) { alert('Ошибка: ' + e.message); }
+}
+
+async function saveProduct(e) {
+  e.preventDefault();
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Сохранение...';
+
+  let colors = [];
+  try {
+    const raw = document.getElementById('f-colors').value.trim();
+    if (raw) colors = JSON.parse(raw);
+  } catch { alert('Неверный JSON в поле «Цвета»'); btn.disabled=false; btn.textContent='Сохранить'; return; }
+
+  const body = {
+    category_id: parseInt(document.getElementById('f-category').value) || null,
+    name: document.getElementById('f-name').value.trim(),
+    material: document.getElementById('f-material').value.trim() || null,
+    material_label: document.getElementById('f-material-label').value.trim() || null,
+    price: parseInt(document.getElementById('f-price').value),
+    old_price: parseInt(document.getElementById('f-old-price').value) || null,
+    stock: parseInt(document.getElementById('f-stock').value) || 0,
+    badge: document.getElementById('f-badge').value || null,
+    sizes: document.getElementById('f-sizes').value.split(',').map(s=>s.trim()).filter(Boolean),
+    disabled_sizes: document.getElementById('f-disabled-sizes').value.split(',').map(s=>s.trim()).filter(Boolean),
+    colors,
+    description: document.getElementById('f-description').value.trim() || null,
+    care: document.getElementById('f-care').value.trim() || null,
+    is_active: document.getElementById('f-active').checked,
+    sort_order: 0,
+  };
+
+  try {
+    const id = document.getElementById('f-id').value;
+    if (id) {
+      await apiFetch(`/admin/products/${id}`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    } else {
+      const created = await apiFetch('/admin/products', {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      currentProductId = created.id;
+    }
+    closeModal();
+    loadProducts();
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Сохранить';
+  }
+}
+
+async function deleteProduct(id, name) {
+  if (!confirm(`Скрыть товар «${name}»? Он останется в базе (is_active=false).`)) return;
+  try {
+    await apiFetch(`/admin/products/${id}`, { method: 'DELETE' });
+    loadProducts();
+  } catch(e) { alert('Ошибка: ' + e.message); }
+}
+
+async function deleteImage(imageId, productId) {
+  if (!confirm('Удалить фото?')) return;
+  try {
+    await apiFetch(`/admin/products/images/${imageId}`, { method: 'DELETE' });
+    document.getElementById(`img-${imageId}`)?.remove();
+  } catch(e) { alert('Ошибка: ' + e.message); }
+}
+
+async function uploadFiles(files) {
+  if (!currentProductId) { alert('Сначала сохраните товар, потом загружайте фото'); return; }
+  for (const file of files) {
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const img = await apiFetch(`/admin/products/${currentProductId}/images`, {
+        method: 'POST', body: fd });
+      // Добавляем в превью
+      const thumb = document.createElement('div');
+      thumb.className = 'photo-thumb';
+      thumb.id = `img-${img.id}`;
+      thumb.innerHTML = `
+        <img src="${img.url}" alt="">
+        <button class="del-btn" onclick="deleteImage(${img.id}, ${currentProductId})">✕</button>`;
+      document.getElementById('photos-row').appendChild(thumb);
+    } catch(e) { alert(`Ошибка загрузки ${file.name}: ${e.message}`); }
+  }
+}
+
+function handleFiles(fileList) { uploadFiles(Array.from(fileList)); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag');
+  uploadFiles(Array.from(e.dataTransfer.files));
+}
+
+document.getElementById('modal-bg').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-bg')) closeModal();
+});
+
+if (!getToken()) { location.href = 'index.html'; }
+else { Promise.all([loadCategories(), loadProducts()]); }
+</script>
+</body>
+</html>

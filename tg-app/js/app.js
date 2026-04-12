@@ -202,6 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })();
 
-  // 8. Онбординг → затем оффер
+  // 8. Идентификация покупателя на бэкенде (fire-and-forget)
+  identifyBuyer().catch(() => {});
+
+  // 9. Онбординг → затем оффер
   setTimeout(() => Onboarding.show(), 400);
 });
