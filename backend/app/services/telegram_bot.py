@@ -265,6 +265,115 @@ def _order_keyboard(order_id: int, current_status: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons) if buttons else None
 
 
+# ─── Рассылка через бота ─────────────────────────────────────────────────────
+
+# Словарь: admin_telegram_id → текст который набирает для рассылки
+_broadcast_drafts: dict[int, str] = {}
+
+
+async def cmd_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/broadcast — начать создание рассылки."""
+    if not _is_admin(update.effective_user.id):
+        return
+    _broadcast_drafts[update.effective_user.id] = ""
+    await update.message.reply_text(
+        "📢 Введи текст рассылки.\n"
+        "Можно прикрепить фото к следующему сообщению.\n\n"
+        "Для отмены: /cancel"
+    )
+
+
+async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not _is_admin(update.effective_user.id):
+        return
+    _broadcast_drafts.pop(update.effective_user.id, None)
+    await update.message.reply_text("Отменено.")
+
+
+async def handle_broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Перехватывает текст/фото пока активен режим рассылки."""
+    user_id = update.effective_user.id
+    if not _is_admin(user_id) or user_id not in _broadcast_drafts:
+        return
+
+    msg = update.message
+    text = _broadcast_drafts.get(user_id, "")
+
+    # Если ещё не ввели текст — сохраняем
+    if not text:
+        text = msg.text or msg.caption or ""
+        if not text:
+            await msg.reply_text("Введи текст рассылки (или текст + фото).")
+            return
+        _broadcast_drafts[user_id] = text
+
+        # Показываем превью и просим подтвердить
+        from app.database import AsyncSessionLocal
+        from app.models.buyer import Buyer
+        from sqlalchemy import select, func as sqlfunc
+        async with AsyncSessionLocal() as db:
+            count_res = await db.execute(
+                select(sqlfunc.count(Buyer.id)).where(Buyer.is_blocked == False)
+            )
+            count = count_res.scalar()
+
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(f"✅ Отправить {count} покупателям", callback_data="broadcast_confirm"),
+            InlineKeyboardButton("❌ Отмена", callback_data="broadcast_cancel"),
+        ]])
+        await msg.reply_text(
+            f"📢 Превью рассылки:\n\n{text}\n\n"
+            f"Получателей: {count}",
+            reply_markup=keyboard,
+        )
+        return
+
+    # Иначе — сообщение не относится к рассылке
+    _broadcast_drafts.pop(user_id, None)
+
+
+async def callback_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """callback_data: broadcast_confirm / broadcast_cancel."""
+    query = update.callback_query
+    await query.answer()
+    user_id = query.from_user.id
+
+    if not _is_admin(user_id):
+        return
+
+    if query.data == "broadcast_cancel":
+        _broadcast_drafts.pop(user_id, None)
+        await query.edit_message_text("Рассылка отменена.")
+        return
+
+    if query.data == "broadcast_confirm":
+        text = _broadcast_drafts.pop(user_id, None)
+        if not text:
+            await query.edit_message_text("Текст рассылки потерян. Начни заново: /broadcast")
+            return
+
+        # Создаём рассылку через сервис
+        from app.database import AsyncSessionLocal
+        from app.models.broadcast import Broadcast
+        from app.services.broadcast import run_broadcast
+        import asyncio
+
+        async with AsyncSessionLocal() as db:
+            broadcast = Broadcast(text=text, status="draft")
+            db.add(broadcast)
+            await db.flush()
+            await db.refresh(broadcast)
+            broadcast_id = broadcast.id
+            await db.commit()
+
+        asyncio.create_task(run_broadcast(broadcast_id))
+
+        await query.edit_message_text(
+            f"🚀 Рассылка #{broadcast_id} запущена!\n"
+            f"Прогресс можно отследить в /admin панели."
+        )
+
+
 # ─── Инициализация приложения бота ───────────────────────────────────────────
 
 def build_application() -> Application:
@@ -275,9 +384,21 @@ def build_application() -> Application:
 
     app = Application.builder().token(token).build()
 
-    app.add_handler(CommandHandler("start",  cmd_start))
-    app.add_handler(CommandHandler("orders", cmd_orders))
-    app.add_handler(CommandHandler("order",  cmd_order))
+    app.add_handler(CommandHandler("start",     cmd_start))
+    app.add_handler(CommandHandler("orders",    cmd_orders))
+    app.add_handler(CommandHandler("order",     cmd_order))
+    app.add_handler(CommandHandler("broadcast", cmd_broadcast))
+    app.add_handler(CommandHandler("cancel",    cmd_cancel))
+
+    # Callback handlers — порядок важен: broadcast раньше order-actions
+    app.add_handler(CallbackQueryHandler(callback_broadcast,    pattern=r"^broadcast_"))
     app.add_handler(CallbackQueryHandler(callback_order_action))
+
+    # Текстовые сообщения — для ввода текста рассылки
+    from telegram.ext import MessageHandler, filters
+    app.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        handle_broadcast_message,
+    ))
 
     return app

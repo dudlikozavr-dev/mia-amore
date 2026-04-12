@@ -12,6 +12,7 @@ from app.routers.public.orders import router as orders_router
 from app.routers.admin.categories import router as admin_categories_router
 from app.routers.admin.products import router as admin_products_router
 from app.routers.admin.orders import router as admin_orders_router
+from app.routers.admin.broadcast import router as admin_broadcast_router
 from app.routers.webhook import router as webhook_router, initialize_bot, shutdown_bot
 from tasks.scheduler import setup_scheduler
 
@@ -61,6 +62,7 @@ app.include_router(orders_router)
 app.include_router(admin_categories_router)
 app.include_router(admin_products_router)
 app.include_router(admin_orders_router)
+app.include_router(admin_broadcast_router)
 
 # ── Telegram webhook ──────────────────────────────────────────────────────────
 app.include_router(webhook_router)
