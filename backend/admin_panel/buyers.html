@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Покупатели — Mia-Amore Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: #f5f5f5; color: #1c1c1e; }
+    .header { background: #1c1c1e; color: #fff; padding: 16px 24px; }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .nav { background: #fff; border-bottom: 1px solid #e5e5ea; display: flex; overflow-x: auto; }
+    .nav a { padding: 12px 20px; font-size: 14px; font-weight: 500; color: #636366;
+             text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; }
+    .nav a.active, .nav a:hover { color: #1c1c1e; border-bottom-color: #1c1c1e; }
+    .main { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+
+    /* Toolbar */
+    .toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .toolbar input { flex: 1; min-width: 200px; padding: 9px 12px; border: 1px solid #c7c7cc;
+                     border-radius: 8px; font-size: 14px; }
+    .filter-btn { padding: 8px 14px; border: 1px solid #c7c7cc; border-radius: 8px;
+                  background: #fff; font-size: 13px; cursor: pointer; white-space: nowrap; }
+    .filter-btn.active { background: #1c1c1e; color: #fff; border-color: #1c1c1e; }
+
+    /* Table */
+    .table-wrap { background: #fff; border-radius: 12px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600;
+               color: #636366; border-bottom: 1px solid #f2f2f7; background: #fafafa; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: #f9f9f9; }
+    td { padding: 12px 16px; border-bottom: 1px solid #f2f2f7; vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px;
+             font-weight: 500; }
+    .badge-ok      { background: #e8f5e9; color: #2e7d32; }
+    .badge-blocked { background: #ffebee; color: #b71c1c; }
+
+    /* Drawer */
+    .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.3);
+                      display: none; z-index: 100; }
+    .drawer { position: fixed; right: 0; top: 0; bottom: 0; width: 400px; background: #fff;
+              box-shadow: -4px 0 24px rgba(0,0,0,.12); padding: 24px; overflow-y: auto;
+              z-index: 101; transform: translateX(100%); transition: transform .25s; }
+    .drawer.open { transform: translateX(0); }
+    .drawer-overlay.open { display: block; }
+    .drawer h2 { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+    .drawer-close { position: absolute; top: 20px; right: 20px; background: none; border: none;
+                    font-size: 20px; cursor: pointer; color: #636366; }
+
+    .detail-row { margin-bottom: 12px; }
+    .detail-row label { font-size: 12px; color: #636366; display: block; margin-bottom: 2px; }
+    .detail-row span { font-size: 14px; }
+
+    .orders-list { margin-top: 16px; }
+    .order-item { padding: 10px 0; border-bottom: 1px solid #f2f2f7; font-size: 13px; }
+    .order-item:last-child { border-bottom: none; }
+
+    .btn { padding: 9px 16px; border: none; border-radius: 8px; font-size: 13px;
+           font-weight: 500; cursor: pointer; }
+    .btn-danger { background: #ffebee; color: #b71c1c; }
+    .btn-success { background: #e8f5e9; color: #2e7d32; }
+    .btn:hover { opacity: .85; }
+
+    .loader { text-align: center; padding: 40px; color: #636366; font-size: 14px; }
+    @media (max-width: 640px) {
+      .drawer { width: 100%; }
+      td:nth-child(3), th:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="header"><h1>Mia-Amore Admin</h1></div>
+<nav class="nav">
+  <a href="index.html">Дашборд</a>
+  <a href="orders.html">Заказы</a>
+  <a href="products.html">Товары</a>
+  <a href="buyers.html" class="active">Покупатели</a>
+  <a href="broadcast.html">Рассылка</a>
+</nav>
+
+<div class="main">
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Имя или @username..." oninput="loadBuyers()">
+    <button class="filter-btn active" data-blocked="" onclick="setFilter(this, '')">Все</button>
+    <button class="filter-btn" data-blocked="false" onclick="setFilter(this, 'false')">Активные</button>
+    <button class="filter-btn" data-blocked="true" onclick="setFilter(this, 'true')">Заблокированные</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Покупатель</th>
+          <th>Заказы</th>
+          <th>Потрачено</th>
+          <th>Статус</th>
+          <th>Дата</th>
+        </tr>
+      </thead>
+      <tbody id="buyers-body">
+        <tr><td colspan="5"><div class="loader">Загрузка...</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Drawer: профиль покупателя -->
+<div class="drawer-overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2 id="drawer-title">Покупатель</h2>
+  <div id="drawer-content"></div>
+</div>
+
+<script>
+const API = '';
+let blockedFilter = '';
+
+function getToken() { return localStorage.getItem('mia_admin_token') || ''; }
+function headers(extra={}) { return { 'Authorization': 'Bearer ' + getToken(), ...extra }; }
+
+async function apiFetch(path, opts={}) {
+  const res = await fetch(API + path, { ...opts, headers: { ...headers(), ...(opts.headers||{}) } });
+  if (!res.ok) { const b = await res.json().catch(()=>({})); throw new Error(b.detail || res.status); }
+  return res.json();
+}
+
+function setFilter(btn, value) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  blockedFilter = value;
+  loadBuyers();
+}
+
+async function loadBuyers() {
+  const search = document.getElementById('search').value.trim();
+  let url = '/admin/buyers?';
+  if (search) url += `search=${encodeURIComponent(search)}&`;
+  if (blockedFilter !== '') url += `blocked=${blockedFilter}`;
+
+  const tbody = document.getElementById('buyers-body');
+  tbody.innerHTML = '<tr><td colspan="5"><div class="loader">Загрузка...</div></td></tr>';
+
+  try {
+    const buyers = await apiFetch(url);
+    if (!buyers.length) {
+      tbody.innerHTML = '<tr><td colspan="5"><div class="loader">Нет покупателей</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = buyers.map(b => `
+      <tr onclick="openDrawer(${b.id})">
+        <td>
+          <div style="font-weight:500">${b.first_name || '—'} ${b.last_name || ''}</div>
+          <div style="font-size:12px;color:#636366">${b.username ? '@' + b.username : 'без username'}</div>
+        </td>
+        <td>${b.order_count}</td>
+        <td>${b.total_spent.toLocaleString('ru-RU')} ₽</td>
+        <td><span class="badge ${b.is_blocked ? 'badge-blocked' : 'badge-ok'}">
+          ${b.is_blocked ? 'Заблокирован' : 'Активен'}
+        </span></td>
+        <td style="font-size:12px;color:#636366">${b.created_at}</td>
+      </tr>
+    `).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="loader" style="color:#ff3b30">Ошибка: ${e.message}</div></td></tr>`;
+  }
+}
+
+async function openDrawer(buyerId) {
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('drawer-content').innerHTML = '<div class="loader">Загрузка...</div>';
+
+  try {
+    const b = await apiFetch(`/admin/buyers/${buyerId}`);
+    document.getElementById('drawer-title').textContent =
+      `${b.first_name || ''} ${b.last_name || ''}`.trim() || `ID ${b.telegram_id}`;
+
+    const ordersHtml = b.orders.length
+      ? b.orders.map(o => `
+          <div class="order-item">
+            <span style="font-weight:600">${o.order_number}</span>
+            <span style="margin:0 8px;color:#636366">${o.status}</span>
+            <span>${o.total.toLocaleString('ru-RU')} ₽</span>
+            <span style="float:right;color:#636366">${o.created_at}</span>
+          </div>`).join('')
+      : '<div style="color:#636366;font-size:13px">Заказов нет</div>';
+
+    document.getElementById('drawer-content').innerHTML = `
+      <div class="detail-row">
+        <label>Telegram ID</label>
+        <span>${b.telegram_id}</span>
+      </div>
+      ${b.username ? `<div class="detail-row"><label>Username</label><span>@${b.username}</span></div>` : ''}
+      ${b.phone ? `<div class="detail-row"><label>Телефон</label><span>${b.phone}</span></div>` : ''}
+      <div class="detail-row">
+        <label>Зарегистрирован</label><span>${b.created_at}</span>
+      </div>
+      <div class="detail-row">
+        <label>Последняя активность</label><span>${b.last_active_at}</span>
+      </div>
+      <div class="detail-row">
+        <label>Заказов / Потрачено</label>
+        <span>${b.order_count} заказа · ${b.total_spent.toLocaleString('ru-RU')} ₽</span>
+      </div>
+
+      <div style="margin:16px 0">
+        <button class="btn ${b.is_blocked ? 'btn-success' : 'btn-danger'}"
+                onclick="toggleBlock(${b.id}, ${b.is_blocked})">
+          ${b.is_blocked ? 'Разблокировать' : 'Заблокировать'}
+        </button>
+      </div>
+
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">История заказов</div>
+      <div class="orders-list">${ordersHtml}</div>
+    `;
+  } catch(e) {
+    document.getElementById('drawer-content').innerHTML =
+      `<div style="color:#ff3b30">Ошибка: ${e.message}</div>`;
+  }
+}
+
+async function toggleBlock(buyerId, isCurrentlyBlocked) {
+  try {
+    await apiFetch(`/admin/buyers/${buyerId}/block`, { method: 'PATCH' });
+    closeDrawer();
+    loadBuyers();
+  } catch(e) {
+    alert(`Ошибка: ${e.message}`);
+  }
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+if (!getToken()) { location.href = 'index.html'; }
+else { loadBuyers(); }
+</script>
+</body>
+</html>

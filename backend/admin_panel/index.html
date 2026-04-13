@@ -107,6 +107,7 @@
     <a href="index.html" class="active">Дашборд</a>
     <a href="orders.html">Заказы</a>
     <a href="products.html">Товары</a>
+    <a href="buyers.html">Покупатели</a>
     <a href="broadcast.html">Рассылка</a>
   </nav>
 
@@ -174,29 +175,44 @@ async function loadDashboard() {
     if (health.env === 'development') badge.classList.add('dev');
   } catch {}
 
-  // Заказы для статистики
+  // Статистика из /admin/stats
   try {
-    const orders = await apiFetch('/admin/orders');
-    const total = orders.reduce((s, o) => s + o.total, 0);
-    const newCount = orders.filter(o => o.status === 'new').length;
+    const [stats, orders] = await Promise.all([
+      apiFetch('/admin/stats'),
+      apiFetch('/admin/orders'),
+    ]);
+    const newCount = stats.orders.by_status['new'] || 0;
 
     document.getElementById('stats').innerHTML = `
       <div class="stat-card">
         <div class="label">Заказов всего</div>
-        <div class="value">${orders.length}</div>
+        <div class="value">${stats.orders.total}</div>
+        <div class="sub">${newCount} новых</div>
       </div>
       <div class="stat-card">
-        <div class="label">Новых заказов</div>
-        <div class="value" style="color:#0066cc">${newCount}</div>
+        <div class="label">Выручка за месяц</div>
+        <div class="value">${stats.revenue.month.toLocaleString('ru-RU')} ₽</div>
+        <div class="sub">сегодня: ${stats.revenue.today.toLocaleString('ru-RU')} ₽</div>
       </div>
       <div class="stat-card">
-        <div class="label">Выручка</div>
-        <div class="value">${total.toLocaleString('ru-RU')} ₽</div>
-        <div class="sub">все заказы</div>
+        <div class="label">Выручка всего</div>
+        <div class="value">${stats.revenue.all_time.toLocaleString('ru-RU')} ₽</div>
+        <div class="sub">${stats.buyers.total} покупателей</div>
       </div>
+      ${stats.top_products.length ? `
+      <div class="stat-card" style="grid-column:1/-1">
+        <div class="label" style="margin-bottom:8px">Топ товаров</div>
+        ${stats.top_products.map((p, i) => `
+          <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;
+                      border-bottom:1px solid #f2f2f7">
+            <span>${i+1}. ${p.product_name}</span>
+            <span style="color:#636366">${p.total_qty} шт · ${p.total_revenue.toLocaleString('ru-RU')} ₽</span>
+          </div>
+        `).join('')}
+      </div>` : ''}
     `;
 
-    // Последние 10
+    // Последние 10 заказов
     const recent = orders.slice(0, 10);
     document.getElementById('recent-orders').innerHTML = `
       <table>
