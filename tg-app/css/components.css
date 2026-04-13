@@ -210,6 +210,30 @@
   transform: scale(1.2);
 }
 
+.gallery__back-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.gallery__back-btn:active {
+  background: rgba(0, 0, 0, 0.55);
+}
+
 /* ===== ИНФОРМАЦИЯ О ТОВАРЕ ===== */
 
 .product-info {

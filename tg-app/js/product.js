@@ -16,6 +16,12 @@ const Product = {
 
   /** Инициализация обработчиков */
   init() {
+    // Кнопка назад поверх галереи
+    document.getElementById('btn-product-back').addEventListener('click', () => {
+      TG.hapticSelection();
+      Router.back();
+    });
+
     // Таблица размеров
     document.getElementById('btn-size-chart').addEventListener('click', () => {
       BottomSheet.open('sheet-sizes');

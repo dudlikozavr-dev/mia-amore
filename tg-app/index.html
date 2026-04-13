@@ -12,7 +12,7 @@
        Проверяет версию сборки в localStorage — при новом деплое делает один редирект. -->
   <script>
     (function () {
-      var BUILD = '14';
+      var BUILD = '17';
       var KEY = '_app_v';
       if (localStorage.getItem(KEY) !== BUILD) {
         localStorage.setItem(KEY, BUILD);
@@ -25,9 +25,9 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <!-- Стили -->
-  <link rel="stylesheet" href="css/theme.css?v=14">
-  <link rel="stylesheet" href="css/base.css?v=14">
-  <link rel="stylesheet" href="css/components.css?v=14">
+  <link rel="stylesheet" href="css/theme.css?v=17">
+  <link rel="stylesheet" href="css/base.css?v=17">
+  <link rel="stylesheet" href="css/components.css?v=17">
 </head>
 <body>
 
@@ -65,7 +65,6 @@
       <button class="chip" data-filter="nightgown">Сорочки</button>
       <button class="chip" data-filter="set">Комплекты</button>
       <button class="chip" data-filter="silk">Шёлк</button>
-      <button class="chip" data-filter="satin">Сатин</button>
     </div>
     </div>
 
@@ -94,6 +93,11 @@
 
     <!-- Галерея фото -->
     <div class="gallery" id="product-gallery">
+      <button class="gallery__back-btn" id="btn-product-back" aria-label="Назад">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
       <div class="gallery__track" id="gallery-track">
         <!-- Фото добавляются из JS -->
       </div>
