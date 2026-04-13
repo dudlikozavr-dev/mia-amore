@@ -5,6 +5,8 @@
 const Catalog = {
   /** Текущий активный фильтр */
   _filter: 'all',
+  /** Товары загруженные из API */
+  _products: [],
 
   /** Инициализация */
   init() {
@@ -15,7 +17,6 @@ const Catalog = {
 
       TG.hapticSelection();
 
-      // Переключить активный чип
       document.querySelectorAll('#filters .chip').forEach(c => c.classList.remove('chip--active'));
       chip.classList.add('chip--active');
 
@@ -36,15 +37,28 @@ const Catalog = {
       Router.go('cart');
     });
 
-    // Первый рендер
-    Catalog.render();
+    // Загрузить товары из API
+    Catalog.load();
+  },
+
+  /** Загрузить товары из API */
+  async load() {
+    const grid = document.getElementById('catalog-grid');
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--hint)">Загрузка...</div>';
+
+    try {
+      Catalog._products = await fetchProducts();
+      Catalog.render();
+    } catch (e) {
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--hint)">Не удалось загрузить каталог</div>`;
+    }
   },
 
   /** Отфильтровать товары */
   _getFiltered() {
-    if (Catalog._filter === 'all') return PRODUCTS;
-    return PRODUCTS.filter(p =>
-      p.category === Catalog._filter || p.material === Catalog._filter
+    if (Catalog._filter === 'all') return Catalog._products;
+    return Catalog._products.filter(p =>
+      p.category_slug === Catalog._filter || p.material === Catalog._filter
     );
   },
 
@@ -63,7 +77,7 @@ const Catalog = {
     empty.hidden = true;
     grid.innerHTML = items.map(p => Catalog._cardHTML(p)).join('');
 
-    // Обработчики кликов по карточкам (игнорировать клик на сердце)
+    // Обработчики кликов по карточкам
     grid.querySelectorAll('.product-card').forEach(card => {
       card.addEventListener('click', (e) => {
         if (e.target.closest('.product-card__heart')) return;
@@ -79,11 +93,9 @@ const Catalog = {
         const id = parseInt(btn.dataset.heartId);
         const isNow = Favorites.toggle(id);
         btn.classList.toggle('product-card__heart--active', isNow);
-        // Анимация пульса
         btn.classList.remove('heart-pop');
-        btn.offsetHeight; // reflow
+        btn.offsetHeight;
         btn.classList.add('heart-pop');
-        // Обновить SVG fill
         const path = btn.querySelector('svg path');
         if (path) path.setAttribute('fill', isNow ? 'currentColor' : 'none');
       });
@@ -96,25 +108,28 @@ const Catalog = {
     });
   },
 
-  /** HTML одной карточки */
+  /** HTML одной карточки (API формат: cover, old_price, material_label) */
   _cardHTML(p) {
     let badge = '';
     if (p.badge === 'hit') badge = '<span class="product-card__badge product-card__badge--hit">Хит</span>';
     if (p.badge === 'new') badge = '<span class="product-card__badge product-card__badge--new">Новинка</span>';
-    if (p.stock <= 3) badge = `<span class="product-card__badge product-card__badge--low">Осталось ${p.stock}</span>`;
+    if (p.stock > 0 && p.stock <= 3) badge = `<span class="product-card__badge product-card__badge--low">Осталось ${p.stock}</span>`;
 
-    const oldPrice = p.oldPrice
-      ? `<span class="product-card__old-price">${Catalog._fmt(p.oldPrice)}</span>`
+    const oldPrice = p.old_price
+      ? `<span class="product-card__old-price">${Catalog._fmt(p.old_price)}</span>`
       : '';
 
+    const imgSrc = p.cover || '';
     const isFav = typeof Favorites !== 'undefined' && Favorites.has(p.id);
 
     return `
       <article class="product-card" data-id="${p.id}">
         <div class="product-card__img-wrap">
           ${badge}
-          <img class="product-card__img" src="${p.images[0]}" alt="${p.name}"
-               data-loading="true" loading="lazy" width="300" height="400">
+          ${imgSrc
+            ? `<img class="product-card__img" src="${imgSrc}" alt="${p.name}" data-loading="true" loading="lazy" width="300" height="400">`
+            : `<div class="product-card__img" style="background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:48px">🧴</div>`
+          }
           <button class="product-card__heart ${isFav ? 'product-card__heart--active' : ''}"
                   data-heart-id="${p.id}" aria-label="В избранное">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -128,7 +143,7 @@ const Catalog = {
             <span class="product-card__price">${Catalog._fmt(p.price)}</span>
             ${oldPrice}
           </div>
-          <div class="product-card__material">${p.materialLabel}</div>
+          <div class="product-card__material">${p.material_label || ''}</div>
         </div>
       </article>
     `;

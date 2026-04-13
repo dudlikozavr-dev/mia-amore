@@ -57,14 +57,34 @@ const Product = {
   },
 
   /** Показать экран товара */
-  show(productId) {
-    const p = PRODUCTS.find(item => item.id === productId);
-    if (!p) return;
-
-    Product._product = p;
+  async show(productId) {
     Product._size = null;
     Product._colorIdx = 0;
     Product._slide = 0;
+
+    // Показываем экран сразу, данные подгружаем
+    document.getElementById('product-name').textContent = 'Загрузка...';
+    document.getElementById('product-price').textContent = '';
+    TG.showBackButton(() => Router.back());
+    TG.disableMainButton('Выберите размер');
+    TG.showMainButton('Выберите размер', () => Product._addToCart());
+
+    let p;
+    try {
+      p = await fetchProduct(productId);
+    } catch (e) {
+      document.getElementById('product-name').textContent = 'Ошибка загрузки';
+      return;
+    }
+
+    // Нормализуем поля API → формат компонента
+    p.oldPrice    = p.old_price;
+    p.materialLabel = p.material_label;
+    p.disabledSizes = p.disabled_sizes || [];
+    // images из API: [{id, url, sort_order}] → массив URL
+    p.imageUrls = (p.images || []).map(img => img.url);
+
+    Product._product = p;
 
     // Заполнить данные
     document.getElementById('product-name').textContent = p.name;
@@ -78,7 +98,7 @@ const Product = {
       oldPrice.hidden = true;
     }
 
-    document.getElementById('product-material').textContent = p.materialLabel;
+    document.getElementById('product-material').textContent = p.materialLabel || '';
 
     // Остаток
     const stock = document.getElementById('product-stock');
@@ -120,11 +140,11 @@ const Product = {
     const track = document.getElementById('gallery-track');
     const dots = document.getElementById('gallery-dots');
 
-    track.innerHTML = p.images.map(src =>
+    track.innerHTML = p.imageUrls.map(src =>
       `<div class="gallery__slide"><img src="${src}" alt="${p.name}"></div>`
     ).join('');
 
-    dots.innerHTML = p.images.map((_, i) =>
+    dots.innerHTML = p.imageUrls.map((_, i) =>
       `<div class="gallery__dot ${i === 0 ? 'gallery__dot--active' : ''}"></div>`
     ).join('');
 
@@ -134,7 +154,7 @@ const Product = {
 
   /** Переход к следующему слайду */
   _nextSlide() {
-    const total = Product._product.images.length;
+    const total = Product._product.imageUrls.length;
     if (Product._slide < total - 1) {
       Product._slide++;
       Product._updateSlide();

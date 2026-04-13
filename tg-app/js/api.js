@@ -6,7 +6,9 @@
  * (бэкенд проверяет HMAC-SHA256).
  */
 
-const API_BASE = 'https://mia-amore-api.up.railway.app';
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:8000'
+  : 'https://mia-amore-api.up.railway.app';
 
 /** Возвращает заголовки для запросов к API */
 function _getHeaders() {
