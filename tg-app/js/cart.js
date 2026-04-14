@@ -40,11 +40,12 @@ const Cart = {
 
     // Рендер карточек
     container.innerHTML = items.map((item, idx) => {
-      const p = PRODUCTS.find(prod => prod.id === item.productId);
+      const p = (Catalog._products || []).find(prod => prod.id === item.productId);
       if (!p) return '';
+      const imgSrc = p.cover || (Array.isArray(p.images) && p.images[0]?.url) || '';
       return `
         <div class="cart-item" data-idx="${idx}">
-          <img class="cart-item__img" src="${p.images[0]}" alt="${p.name}" loading="lazy">
+          ${imgSrc ? `<img class="cart-item__img" src="${imgSrc}" alt="${p.name}" loading="lazy">` : '<div class="cart-item__img" style="background:var(--surface-2)"></div>'}
           <div class="cart-item__info">
             <div class="cart-item__name">${p.name}</div>
             <div class="cart-item__variant">Размер ${item.size}, ${item.color}</div>

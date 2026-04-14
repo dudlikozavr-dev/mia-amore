@@ -91,7 +91,8 @@ const Store = {
   /** Сумма товаров (до скидки) */
   getSubtotal() {
     return Store._items.reduce((sum, item) => {
-      const product = PRODUCTS.find(p => p.id === item.productId);
+      // Ищем в API-продуктах (Catalog._products), fallback — в статическом PRODUCTS
+      const product = (typeof Catalog !== 'undefined' && Catalog._products || PRODUCTS).find(p => p.id === item.productId);
       return sum + (product ? product.price * item.qty : 0);
     }, 0);
   },

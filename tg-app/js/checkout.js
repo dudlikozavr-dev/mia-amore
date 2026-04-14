@@ -123,7 +123,7 @@ const Checkout = {
     const buyerPhone = document.getElementById('input-phone').value.trim();
     const city = document.getElementById('input-city').value.trim();
     const address = document.getElementById('input-address').value.trim();
-    const notes = document.getElementById('input-notes')?.value.trim() || null;
+    const notes = document.getElementById('input-comment')?.value.trim() || null;
 
     const storeItems = Store.getItems();
     const subtotal = Store.getSubtotal();
@@ -141,14 +141,17 @@ const Checkout = {
         notes: notes || null,
         delivery_method: Checkout._delivery,
         payment_method: Checkout._payment,
-        items: storeItems.map(item => ({
-          product_id: item.productId,
-          product_name: item.name,
-          size: item.size,
-          color: item.color,
-          qty: item.qty,
-          unit_price: item.price,
-        })),
+        items: storeItems.map(item => {
+          const prod = (Catalog._products || PRODUCTS).find(p => p.id === item.productId);
+          return {
+            product_id: item.productId,
+            product_name: prod?.name || '',
+            size: item.size,
+            color: item.color,
+            qty: item.qty,
+            unit_price: prod?.price || 0,
+          };
+        }),
       });
 
       TG.hideMainButtonProgress();
@@ -157,13 +160,16 @@ const Checkout = {
       const order = {
         id: result.id,
         orderNumber: result.order_number,
-        items: storeItems.map(item => ({
-          name: item.name,
-          size: item.size,
-          color: item.color,
-          qty: item.qty,
-          price: item.price,
-        })),
+        items: storeItems.map(item => {
+          const prod = (Catalog._products || PRODUCTS).find(p => p.id === item.productId);
+          return {
+            name: prod?.name || '',
+            size: item.size,
+            color: item.color,
+            qty: item.qty,
+            price: prod?.price || 0,
+          };
+        }),
         subtotal,
         delivery,
         deliveryMethod: Checkout._delivery === 'cdek' ? 'СДЭК' : 'Почта России',
