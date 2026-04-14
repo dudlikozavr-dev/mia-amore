@@ -12,7 +12,7 @@
        Проверяет версию сборки в localStorage — при новом деплое делает один редирект. -->
   <script>
     (function () {
-      var BUILD = '17';
+      var BUILD = '18';
       var KEY = '_app_v';
       if (localStorage.getItem(KEY) !== BUILD) {
         localStorage.setItem(KEY, BUILD);
@@ -25,9 +25,9 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <!-- Стили -->
-  <link rel="stylesheet" href="css/theme.css?v=17">
-  <link rel="stylesheet" href="css/base.css?v=17">
-  <link rel="stylesheet" href="css/components.css?v=17">
+  <link rel="stylesheet" href="css/theme.css?v=18">
+  <link rel="stylesheet" href="css/base.css?v=18">
+  <link rel="stylesheet" href="css/components.css?v=18">
 </head>
 <body>
 
@@ -89,7 +89,7 @@
   <!-- ============================================
        ЭКРАН 2: КАРТОЧКА ТОВАРА
        ============================================ -->
-  <section id="screen-product" class="screen">
+  <section id="screen-product" class="screen screen--has-nav">
 
     <!-- Галерея фото -->
     <div class="gallery" id="product-gallery">

@@ -4,7 +4,7 @@
 
 const BottomNav = {
   /** Экраны, где показывается нижняя навигация */
-  NAV_SCREENS: ['catalog', 'favorites', 'cart', 'profile'],
+  NAV_SCREENS: ['catalog', 'favorites', 'cart', 'profile', 'product'],
 
   /** Инициализация */
   init() {
@@ -44,9 +44,10 @@ const BottomNav = {
     const visible = BottomNav.NAV_SCREENS.includes(screen);
     nav.classList.toggle('bottom-nav--hidden', !visible);
 
-    // Подсветить нужную вкладку
+    // Подсветить нужную вкладку (карточка товара — подсвечиваем каталог)
+    const activeTab = screen === 'product' ? 'catalog' : screen;
     document.querySelectorAll('.bottom-nav__item').forEach(item => {
-      item.classList.toggle('bottom-nav__item--active', item.dataset.tab === screen);
+      item.classList.toggle('bottom-nav__item--active', item.dataset.tab === activeTab);
     });
   },
 
