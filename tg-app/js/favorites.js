@@ -51,7 +51,7 @@ const Favorites = {
   render() {
     const grid = document.getElementById('favorites-grid');
     const empty = document.getElementById('favorites-empty');
-    const products = PRODUCTS.filter(p => Favorites._ids.has(p.id));
+    const products = (Catalog._products || []).filter(p => Favorites._ids.has(p.id));
 
     if (products.length === 0) {
       grid.innerHTML = '';

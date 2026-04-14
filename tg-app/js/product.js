@@ -2,6 +2,16 @@
    КАРТОЧКА ТОВАРА — галерея, размеры, MainButton
    ================================================ */
 
+/** Измерения по размерам (стандарт Mia-Amore) */
+const SIZE_CHART = {
+  XS:  { chest: '82–86',  waist: '60–64', hips: '88–92'  },
+  S:   { chest: '86–90',  waist: '64–68', hips: '92–96'  },
+  M:   { chest: '90–94',  waist: '68–72', hips: '96–100' },
+  L:   { chest: '94–100', waist: '72–78', hips: '100–106'},
+  XL:  { chest: '100–106',waist: '78–84', hips: '106–112'},
+  XXL: { chest: '106–112',waist: '84–90', hips: '112–118'},
+};
+
 const Product = {
   /** Текущий товар */
   _product: null,
@@ -24,6 +34,7 @@ const Product = {
 
     // Таблица размеров
     document.getElementById('btn-size-chart').addEventListener('click', () => {
+      Product._renderSizeChart();
       BottomSheet.open('sheet-sizes');
     });
 
@@ -87,8 +98,11 @@ const Product = {
     p.oldPrice    = p.old_price;
     p.materialLabel = p.material_label;
     p.disabledSizes = p.disabled_sizes || [];
-    // images из API: [{id, url, sort_order}] → массив URL
-    p.imageUrls = (p.images || []).map(img => img.url);
+    // images из API: [{id, url, sort_order, image_type}] → только галерея
+    p.imageUrls = (p.images || [])
+      .filter(img => img.image_type !== 'size_chart')
+      .map(img => img.url);
+    // size_chart_url уже приходит из API
 
     Product._product = p;
 
@@ -252,6 +266,38 @@ const Product = {
     setTimeout(() => {
       TG.enableMainButton(`В корзину — ${Product._fmt(p.price)}`);
     }, 1500);
+  },
+
+  /** Заполнить таблицу размеров данными текущего товара */
+  _renderSizeChart() {
+    const p = Product._product;
+    if (!p) return;
+
+    const imgWrap = document.getElementById('size-chart-img-wrap');
+    const img = document.getElementById('size-chart-img');
+    const table = document.getElementById('size-chart-table');
+
+    if (p.size_chart_url) {
+      // Показываем картинку из карточки товара
+      img.src = p.size_chart_url;
+      imgWrap.hidden = false;
+      table.hidden = true;
+    } else {
+      // Fallback: текстовая таблица с размерами из карточки
+      imgWrap.hidden = true;
+      table.hidden = false;
+
+      const tbody = document.getElementById('size-table-body');
+      tbody.innerHTML = p.sizes.map(size => {
+        const m = SIZE_CHART[size];
+        const disabled = p.disabledSizes.includes(size);
+        const cls = disabled ? ' class="size-table__row--disabled"' : '';
+        const chest = m ? m.chest : '—';
+        const waist = m ? m.waist : '—';
+        const hips  = m ? m.hips  : '—';
+        return `<tr${cls}><td>${size}${disabled ? ' <span class="size-table__sold-out">нет</span>' : ''}</td><td>${chest}</td><td>${waist}</td><td>${hips}</td></tr>`;
+      }).join('');
+    }
   },
 
   /** Форматирование цены */

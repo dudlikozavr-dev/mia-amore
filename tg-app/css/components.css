@@ -3,6 +3,55 @@
    корзина, форма, bottom sheet
    ================================================ */
 
+/* ===== ПОИСК ===== */
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 12px;
+  padding: 0 12px;
+  height: 40px;
+  background: var(--surface-2);
+  border-radius: 12px;
+}
+
+.search-bar__icon {
+  flex-shrink: 0;
+  color: var(--hint);
+}
+
+.search-bar__input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.search-bar__input::placeholder {
+  color: var(--hint);
+}
+
+/* Скрываем нативный крестик в Chrome/Safari */
+.search-bar__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search-bar__clear {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--hint);
+  cursor: pointer;
+  padding: 2px;
+}
+
 /* ===== ФИЛЬТРЫ (два ряда) ===== */
 
 .filters-wrap {
@@ -795,6 +844,19 @@
   color: var(--text);
 }
 
+.size-table__row--disabled td {
+  opacity: 0.35;
+  text-decoration: line-through;
+}
+
+.size-table__sold-out {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--hint);
+  text-decoration: none;
+  display: inline-block;
+}
+
 
 /* ===== ОФФЕР-МОДАЛКА ===== */
 
@@ -1277,4 +1339,68 @@
   font-size: 12px;
   color: var(--hint);
   padding: 16px 0 8px;
+}
+
+/* ─── Заказы в профиле ─── */
+.profile-orders-loading,
+.profile-orders-empty {
+  font-size: 14px;
+  color: var(--hint);
+  padding: 8px 0;
+}
+
+.profile-order-card {
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.profile-order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.profile-order-number {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.profile-order-status {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.profile-order-item {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-order-more {
+  color: var(--hint);
+  font-size: 12px;
+}
+
+.profile-order-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-order-date {
+  font-size: 12px;
+  color: var(--hint);
+}
+
+.profile-order-total {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
 }

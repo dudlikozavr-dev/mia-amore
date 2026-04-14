@@ -12,7 +12,7 @@
        Проверяет версию сборки в localStorage — при новом деплое делает один редирект. -->
   <script>
     (function () {
-      var BUILD = '18';
+      var BUILD = '23';
       var KEY = '_app_v';
       if (localStorage.getItem(KEY) !== BUILD) {
         localStorage.setItem(KEY, BUILD);
@@ -25,9 +25,9 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <!-- Стили -->
-  <link rel="stylesheet" href="css/theme.css?v=18">
-  <link rel="stylesheet" href="css/base.css?v=18">
-  <link rel="stylesheet" href="css/components.css?v=18">
+  <link rel="stylesheet" href="css/theme.css?v=23">
+  <link rel="stylesheet" href="css/base.css?v=23">
+  <link rel="stylesheet" href="css/components.css?v=23">
 </head>
 <body>
 
@@ -55,6 +55,19 @@
         </button>
       </div>
     </header>
+
+    <!-- Поиск -->
+    <div class="search-bar">
+      <svg class="search-bar__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-bar__input" id="catalog-search" type="search" placeholder="Поиск товаров..." autocomplete="off">
+      <button class="search-bar__clear" id="catalog-search-clear" hidden aria-label="Очистить">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
 
     <!-- Фильтры — горизонтальный скролл с подсказками -->
     <div class="filters-wrap" id="filters-wrap">
@@ -352,6 +365,14 @@
         </div>
       </div>
 
+      <!-- Мои заказы -->
+      <div class="profile-section" id="profile-orders-section">
+        <div class="profile-section__title">Мои заказы</div>
+        <div id="profile-orders-list">
+          <div class="profile-orders-loading" id="profile-orders-loading">Загрузка...</div>
+        </div>
+      </div>
+
       <!-- Действия -->
       <div class="profile-section">
         <button class="profile-action-btn" id="btn-profile-share">
@@ -425,16 +446,17 @@
     <div class="bottom-sheet__content">
       <div class="bottom-sheet__handle"></div>
       <h3 class="bottom-sheet__title">Как выбрать размер</h3>
-      <table class="size-table">
+      <!-- Картинка таблицы размеров (если есть у товара) -->
+      <div id="size-chart-img-wrap" hidden>
+        <img id="size-chart-img" src="" alt="Таблица размеров" style="width:100%;border-radius:8px;display:block">
+      </div>
+      <!-- Текстовая таблица (fallback) -->
+      <table class="size-table" id="size-chart-table">
         <thead>
           <tr><th>Размер</th><th>Грудь</th><th>Талия</th><th>Бёдра</th></tr>
         </thead>
-        <tbody>
-          <tr><td>XS</td><td>82–86</td><td>60–64</td><td>88–92</td></tr>
-          <tr><td>S</td><td>86–90</td><td>64–68</td><td>92–96</td></tr>
-          <tr><td>M</td><td>90–94</td><td>68–72</td><td>96–100</td></tr>
-          <tr><td>L</td><td>94–100</td><td>72–78</td><td>100–106</td></tr>
-          <tr><td>XL</td><td>100–106</td><td>78–84</td><td>106–112</td></tr>
+        <tbody id="size-table-body">
+          <!-- Заполняется из product.js -->
         </tbody>
       </table>
       <p class="bottom-sheet__hint">Не уверены? Напишите в чат — поможем подобрать размер</p>

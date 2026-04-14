@@ -2,9 +2,12 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from datetime import datetime
 
 from app.database import get_db
 from app.models.buyer import Buyer
+from app.models.order import Order, OrderItem
 from app.services.auth import require_init_data
 
 router = APIRouter(prefix="/api", tags=["public"])
@@ -61,3 +64,52 @@ async def identify_buyer(
     await db.flush()
     await db.refresh(buyer)
     return buyer
+
+
+# ─── История заказов покупателя ───────────────────────────────────────────────
+
+class OrderItemOut(BaseModel):
+    product_name: str
+    size: str
+    color: str
+    qty: int
+    unit_price: int
+
+    class Config:
+        from_attributes = True
+
+
+class MyOrderOut(BaseModel):
+    order_number: str
+    status: str
+    total: int
+    created_at: datetime
+    items: list[OrderItemOut]
+
+    class Config:
+        from_attributes = True
+
+
+@router.get("/buyers/{telegram_id}/orders", response_model=list[MyOrderOut])
+async def get_my_orders(
+    telegram_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_init_data),
+):
+    """История заказов покупателя по telegram_id."""
+    result = await db.execute(
+        select(Buyer).where(Buyer.telegram_id == telegram_id)
+    )
+    buyer = result.scalar_one_or_none()
+    if not buyer:
+        return []
+
+    result = await db.execute(
+        select(Order)
+        .where(Order.buyer_id == buyer.id)
+        .options(selectinload(Order.items))
+        .order_by(Order.created_at.desc())
+        .limit(20)
+    )
+    orders = result.scalars().all()
+    return orders

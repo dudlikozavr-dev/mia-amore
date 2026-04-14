@@ -219,6 +219,43 @@ async def reorder_images(
     return {"ok": True}
 
 
+@router.patch("/images/{image_id}/type")
+async def set_image_type(
+    image_id: int,
+    image_type: str,   # gallery | size_chart
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(require_admin),
+):
+    """Пометить фото как таблицу размеров или обычное фото галереи."""
+    if image_type not in ("gallery", "size_chart"):
+        raise HTTPException(status_code=400, detail="image_type: gallery или size_chart")
+
+    result = await db.execute(select(ProductImage).where(ProductImage.id == image_id))
+    image = result.scalar_one_or_none()
+    if not image:
+        raise HTTPException(status_code=404, detail="Фото не найдено")
+
+    # Если ставим size_chart — сбрасываем у других фото этого товара
+    if image_type == "size_chart":
+        await db.execute(
+            select(ProductImage).where(
+                ProductImage.product_id == image.product_id,
+                ProductImage.image_type == "size_chart",
+            )
+        )
+        siblings_result = await db.execute(
+            select(ProductImage).where(
+                ProductImage.product_id == image.product_id,
+                ProductImage.image_type == "size_chart",
+            )
+        )
+        for sibling in siblings_result.scalars().all():
+            sibling.image_type = "gallery"
+
+    image.image_type = image_type
+    return {"id": image_id, "image_type": image_type}
+
+
 @router.delete("/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_image(
     image_id: int,

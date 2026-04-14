@@ -5,6 +5,8 @@
 const Catalog = {
   /** Текущий активный фильтр */
   _filter: 'all',
+  /** Текущий поисковый запрос */
+  _query: '',
   /** Товары загруженные из API */
   _products: [],
 
@@ -37,6 +39,24 @@ const Catalog = {
       Router.go('cart');
     });
 
+    // Поиск
+    const searchInput = document.getElementById('catalog-search');
+    const searchClear = document.getElementById('catalog-search-clear');
+
+    searchInput.addEventListener('input', () => {
+      Catalog._query = searchInput.value.trim().toLowerCase();
+      searchClear.hidden = !Catalog._query;
+      Catalog.render();
+    });
+
+    searchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      Catalog._query = '';
+      searchClear.hidden = true;
+      searchInput.focus();
+      Catalog.render();
+    });
+
     // Загрузить товары из API
     Catalog.load();
   },
@@ -56,10 +76,22 @@ const Catalog = {
 
   /** Отфильтровать товары */
   _getFiltered() {
-    if (Catalog._filter === 'all') return Catalog._products;
-    return Catalog._products.filter(p =>
-      p.category_slug === Catalog._filter || p.material === Catalog._filter
-    );
+    let items = Catalog._products;
+
+    if (Catalog._filter !== 'all') {
+      items = items.filter(p =>
+        p.category_slug === Catalog._filter || p.material === Catalog._filter
+      );
+    }
+
+    if (Catalog._query) {
+      items = items.filter(p =>
+        p.name.toLowerCase().includes(Catalog._query) ||
+        (p.material_label || '').toLowerCase().includes(Catalog._query)
+      );
+    }
+
+    return items;
   },
 
   /** Отрисовка сетки */

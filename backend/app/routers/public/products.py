@@ -27,6 +27,7 @@ class ImageOut(BaseModel):
     id: int
     url: str
     sort_order: int
+    image_type: str = "gallery"
 
 
 class ProductListItem(BaseModel):
@@ -58,6 +59,7 @@ class ProductDetail(BaseModel):
     description: str | None
     care: str | None
     images: list[ImageOut]
+    size_chart_url: str | None   # URL фото таблицы размеров (если есть)
 
 
 # ─── Эндпоинты ───────────────────────────────────────────────
@@ -160,7 +162,11 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         description=product.description,
         care=product.care,
         images=[
-            ImageOut(id=img.id, url=storage.get_url(img), sort_order=img.sort_order)
+            ImageOut(id=img.id, url=storage.get_url(img), sort_order=img.sort_order, image_type=img.image_type)
             for img in images
         ],
+        size_chart_url=next(
+            (storage.get_url(img) for img in images if img.image_type == "size_chart"),
+            None
+        ),
     )

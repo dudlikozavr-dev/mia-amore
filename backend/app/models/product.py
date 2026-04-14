@@ -55,6 +55,8 @@ class ProductImage(Base):
     storage_key: Mapped[str] = mapped_column(Text, nullable=False)
     storage_provider: Mapped[str] = mapped_column(Text, default="cloudinary")
     telegram_file_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_type: Mapped[str] = mapped_column(Text, default="gallery")
+    # gallery | size_chart
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now()

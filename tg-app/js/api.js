@@ -67,6 +67,14 @@ async function fetchCategories() {
 // ─── Покупатель ───────────────────────────────────────────────────────────────
 
 /**
+ * История заказов текущего пользователя.
+ * @param {number} telegramId
+ */
+async function fetchMyOrders(telegramId) {
+  return _apiRequest(`/api/buyers/${telegramId}/orders`);
+}
+
+/**
  * Регистрирует/обновляет покупателя при открытии Mini App.
  * Вызывается один раз при инициализации app.js.
  */
