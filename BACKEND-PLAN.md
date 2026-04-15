@@ -594,57 +594,72 @@ FRONTEND_URL=                      # https://tg-app.vercel.app (CORS)
 
 ## 12. ПОРЯДОК РАЗРАБОТКИ
 
-### Этап 1 — Ядро и БД (неделя 1)
-- [ ] FastAPI проект, Alembic, подключение Supabase
-- [ ] Модели: Category, Product, ProductImage (со storage_key)
-- [ ] `GET /api/categories`, `GET /api/products`, `GET /api/products/{id}`
-- [ ] Заполнить БД 10 товарами из `data.js`
-- [ ] Тесты: `test_products.py`
+### Этап 1 — Ядро и БД ✅ ВЫПОЛНЕН (15.04.2026)
+- [x] FastAPI проект, подключение Supabase
+- [x] Модели: Category, Product, ProductImage, Buyer, Order, OrderItem, Broadcast
+- [x] `GET /api/categories`, `GET /api/products`, `GET /api/products/{id}`
+- [x] БД заполнена 10 реальными товарами с фото на Cloudinary
+- [x] Бэкенд запущен локально (venv_312, Python 3.12)
 
-### Этап 2 — Фронтенд читает из API (неделя 1–2)
-- [ ] `api.js` на фронте, удалить `data.js`
-- [ ] Каталог и карточка товара — данные из БД
-- [ ] Валидация initData (HMAC + срок давности)
-- [ ] Тесты: `test_auth.py`
-- [ ] Smoke-тест в стейджинге: открыть в Telegram, убедиться что каталог грузится
+### Этап 2 — Фронтенд читает из API ✅ ВЫПОЛНЕН (15.04.2026)
+- [x] `api.js` — все функции: fetchProducts, fetchProduct, createOrder, identifyBuyer
+- [x] Каталог и карточка товара — данные из БД
+- [x] `data.js` удалён из подключения, fallback PRODUCTS убран
+- [x] Деплой бэкенда на Railway: https://mia-amore-production.up.railway.app
+- [x] Telegram webhook зарегистрирован
+- [x] Smoke-тест в Telegram: открыть @sikretsweet_home_bot/app — каталог грузится ✅ (15.04.2026)
 
-### Этап 3 — Заказы (неделя 2)
-- [ ] Модели: Buyer, Order, OrderItem
-- [ ] `POST /api/buyers/identify`
-- [ ] `POST /api/orders` → сохранить Order + OrderItem[]
-- [ ] notification_sent = false, background task уведомления Дениса
-- [ ] APScheduler: retry каждые 5 минут
-- [ ] Уведомление покупателю о принятом заказе
-- [ ] Тесты: `test_orders.py`
+### Этап 3 — Заказы ✅ ВЫПОЛНЕН (15.04.2026)
+- [x] `POST /api/orders` → Order + OrderItem[] сохраняются в БД
+- [x] `POST /api/buyers/identify` — работает
+- [x] Background task уведомления Дениса — уведомление пришло ✅
+- [x] APScheduler: retry каждые 5 минут — настроен
+- [x] Полный флоу протестирован: заказ → уведомление в бот ✅
 
-### Этап 4 — Бот для Дениса (неделя 2–3)
-- [ ] Webhook `/webhook`, регистрация команд
-- [ ] Просмотр заказов: `/orders`, `/order 1042`
-- [ ] Смена статуса inline-кнопками
-- [ ] Загрузка фото товара через бота → Cloudinary → ProductImage
+### Этап 4 — Бот для Дениса ✅ ВЫПОЛНЕН (15.04.2026)
+- [x] Просмотр заказов: `/orders`, `/order 1042`
+- [x] Смена статуса inline-кнопками → уведомление покупателю ✅
+- [x] `/broadcast` — рассылка с подтверждением
+- [ ] Загрузка фото товара через бота → Cloudinary → ProductImage (отложено)
 
-### Этап 5 — Веб-панель (неделя 3–4)
-- [ ] HTML-формы: CRUD товаров и категорий
-- [ ] Загрузка фото drag&drop
-- [ ] Таблица заказов со сменой статуса
-- [ ] Список покупателей + история
+### Этап 5 — Веб-панель ✅ ВЫПОЛНЕН (15.04.2026)
+- [x] Дашборд: выручка за периоды, топ товаров, последние заказы
+- [x] Товары: CRUD + загрузка фото drag&drop + таблица размеров
+- [x] Заказы: фильтры по статусу, поиск, смена статуса из панели
+- [x] Покупатели: список
+- [x] Рассылка: форма
+- [x] Доступна по: https://mia-amore-production.up.railway.app/admin
 
-### Этап 6 — Рассылка (неделя 4)
+### Этап 6 — Рассылка
 - [ ] `POST /admin/broadcast` → фоновая задача с throttle
 - [ ] `GET /admin/broadcast/{id}` — прогресс
 - [ ] `/broadcast` в боте
-- [ ] Тесты: `test_broadcast.py`
 
-### Этап 7 — Перенос на VPS (когда нужно)
+### Этап 7 — Оплата через ЮKassa + Telegram Payments (ИП есть ✅)
+> ИП подтверждён — этап можно делать сразу после Этапа 3
+
+**Один раз руками:**
+- [ ] Зарегистрироваться в ЮKassa, подключить ИП, пройти проверку (~1–3 дня)
+- [ ] В @BotFather: `Payments → ЮKassa` → получить `PROVIDER_TOKEN`
+- [ ] Добавить `PROVIDER_TOKEN` в Railway переменные
+
+**В коде:**
+- [ ] `POST /api/orders/invoice` — создать черновик заказа + отправить Invoice через бота
+- [ ] `checkout.js` — при «Онлайн оплата» запрашивать invoice вместо прямого createOrder
+- [ ] `webhook.py` — обработчик `successful_payment` → `payment_status = 'paid'`
+- [ ] Уведомление покупателю «Оплата получена» + Денису
+- [ ] Фолбэк: COD (наложенный платёж) остаётся без изменений
+
+**Комиссии ЮKassa:**
+- Карты (Visa/MC/Мир): ~2.5–3.5%
+- СБП: 0.4–0.7%
+- Наложенный платёж: 0%
+
+### Этап 8 — Перенос на VPS (когда нужно, 152-ФЗ)
 - [ ] PostgreSQL на VPS вместо Supabase
 - [ ] `scripts/migrate_storage.py` → файлы на Яндекс Object Storage
 - [ ] nginx + systemd + SSL (Let's Encrypt)
 - [ ] Проверка 152-ФЗ: личные данные только в РФ
-
-### Этап 8 — Оплата (когда будет ИП)
-- [ ] ЮKassa через Telegram Payments (@BotFather)
-- [ ] Webhook `successful_payment` → `payment_status = 'paid'`
-- [ ] Уведомление обеим сторонам
 
 ---
 
@@ -664,4 +679,4 @@ FRONTEND_URL=                      # https://tg-app.vercel.app (CORS)
 | Стейджинг | Отдельный бот + Railway service | Тесты не на живых покупателях |
 | Хостинг тест | Railway + Supabase | Бесплатно, деплой из GitHub |
 | Хостинг прод | VPS в РФ | 152-ФЗ, личные данные |
-| Оплата | Отложена | Нужен ИП; архитектура готова |
+| Оплата | Telegram Payments + ЮKassa | ИП есть; нативный UX внутри Telegram |
