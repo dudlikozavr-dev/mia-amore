@@ -142,7 +142,7 @@ const Checkout = {
         delivery_method: Checkout._delivery,
         payment_method: Checkout._payment,
         items: storeItems.map(item => {
-          const prod = (Catalog._products || PRODUCTS).find(p => p.id === item.productId);
+          const prod = Catalog._products.find(p => p.id === item.productId);
           return {
             product_id: item.productId,
             product_name: prod?.name || '',
@@ -161,7 +161,7 @@ const Checkout = {
         id: result.id,
         orderNumber: result.order_number,
         items: storeItems.map(item => {
-          const prod = (Catalog._products || PRODUCTS).find(p => p.id === item.productId);
+          const prod = Catalog._products.find(p => p.id === item.productId);
           return {
             name: prod?.name || '',
             size: item.size,
