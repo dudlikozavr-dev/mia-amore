@@ -108,7 +108,7 @@ async def create_product(
     product = Product(**body.model_dump())
     db.add(product)
     await db.flush()
-    await db.refresh(product)
+    await db.refresh(product, attribute_names=["images"])
     return _product_out(product)
 
 
