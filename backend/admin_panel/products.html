@@ -363,13 +363,16 @@ async function saveProduct(e) {
     if (id) {
       await apiFetch(`/admin/products/${id}`, {
         method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      closeModal();
+      loadProducts();
     } else {
       const created = await apiFetch('/admin/products', {
         method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
       currentProductId = created.id;
+      document.getElementById('f-id').value = created.id;
+      document.getElementById('modal-title').textContent = 'Редактировать товар — теперь можно загрузить фото';
+      loadProducts();
     }
-    closeModal();
-    loadProducts();
   } catch(e) {
     alert('Ошибка: ' + e.message);
   } finally {
