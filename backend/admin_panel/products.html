@@ -159,9 +159,11 @@
       </div>
 
       <div class="form-row">
-        <label>Цвета (JSON)</label>
-        <textarea id="f-colors" style="min-height:60px"
-          placeholder='[{"name":"Чёрный","hex":"#1C1C1E"}]'></textarea>
+        <label>Цвета (через запятую)</label>
+        <input type="text" id="f-colors" placeholder="Розовый, Чёрный, Бордо">
+        <div style="font-size:12px;color:#636366;margin-top:6px">
+          Можно задать свой hex: <code>Розовый #E8C8C0, Чёрный #1C1C1E</code>.
+        </div>
       </div>
 
       <div class="form-row">
@@ -205,6 +207,42 @@
 const API = '';
 let categories = [];
 let currentProductId = null;
+
+// Справочник популярных цветов: название (в нижнем регистре) → hex
+const COLOR_HEX = {
+  'чёрный':'#1C1C1E','черный':'#1C1C1E',
+  'белый':'#F5F5F7','молочный':'#F5F0E8','слоновая кость':'#F5F0E8','жемчужный':'#F0EDE8',
+  'розовый':'#E8C8C0','пудровый':'#E8C8C0','пыльная роза':'#C9A0A0',
+  'бежевый':'#D4B896','шампань':'#E8DCC8',
+  'бордо':'#6B2D3E','баклажан':'#5E2E3B','марсала':'#8E3A3A','красный':'#C0392B',
+  'графит':'#4A4A4E','серый':'#8E8E93','тёмно-серый':'#3A3A3C','темно-серый':'#3A3A3C',
+  'тёмно-синий':'#2C3E6B','темно-синий':'#2C3E6B','синий':'#3B5998','голубой':'#5AC8FA',
+  'изумруд':'#2D6A5F','изумрудный':'#2D6A5F','зелёный':'#34C759','зеленый':'#34C759','мятный':'#98D8C8',
+  'фиолетовый':'#AF52DE','лавандовый':'#B8A9C9','сиреневый':'#C8A2C8',
+  'коричневый':'#8B4513','шоколадный':'#7B3F00','капучино':'#A67B5B',
+  'оранжевый':'#FF9500','жёлтый':'#FFCC00','желтый':'#FFCC00',
+};
+
+function parseColors(raw) {
+  // "Розовый, Чёрный #1C1C1E" → [{name,hex}, ...]
+  return raw.split(',').map(s => s.trim()).filter(Boolean).map(part => {
+    const m = part.match(/^(.+?)\s+(#[0-9a-fA-F]{3,6})\s*$/);
+    if (m) return { name: m[1].trim(), hex: m[2].toUpperCase() };
+    const key = part.toLowerCase();
+    return { name: part, hex: COLOR_HEX[key] || '#8E8E93' };
+  });
+}
+
+function colorsToText(colors) {
+  // [{name:'Розовый',hex:'#E8C8C0'}] → "Розовый #E8C8C0, ..."
+  return (colors || []).map(c => {
+    const known = COLOR_HEX[(c.name || '').toLowerCase()];
+    // Если hex совпадает со справочником — не показывать
+    return known && known.toUpperCase() === (c.hex || '').toUpperCase()
+      ? c.name
+      : `${c.name} ${c.hex}`;
+  }).join(', ');
+}
 
 function getToken() { return localStorage.getItem('mia_admin_token') || ''; }
 function headers(extra={}) { return { 'Authorization': 'Bearer ' + getToken(), ...extra }; }
@@ -271,8 +309,7 @@ async function openModal(product = null) {
   document.getElementById('f-badge').value = product?.badge || '';
   document.getElementById('f-sizes').value = (product?.sizes || []).join(', ');
   renderSizeStock(product?.size_stock || {});
-  document.getElementById('f-colors').value = product?.colors
-    ? JSON.stringify(product.colors, null, 2) : '';
+  document.getElementById('f-colors').value = colorsToText(product?.colors || []);
   document.getElementById('f-description').value = product?.description || '';
   document.getElementById('f-care').value = product?.care || '';
   document.getElementById('f-active').checked = product?.is_active !== false;
@@ -358,11 +395,7 @@ async function saveProduct(e) {
   const btn = document.getElementById('save-btn');
   btn.disabled = true; btn.textContent = 'Сохранение...';
 
-  let colors = [];
-  try {
-    const raw = document.getElementById('f-colors').value.trim();
-    if (raw) colors = JSON.parse(raw);
-  } catch { alert('Неверный JSON в поле «Цвета»'); btn.disabled=false; btn.textContent='Сохранить'; return; }
+  const colors = parseColors(document.getElementById('f-colors').value);
 
   const size_stock = readSizeStockFromDom();
   const body = {
