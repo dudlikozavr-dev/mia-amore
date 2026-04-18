@@ -41,7 +41,7 @@ const Success = {
       Адрес: ${order.address}
     </div>`;
 
-    const total = order.subtotal + order.delivery;
+    const total = order.total ?? (order.subtotal + order.delivery);
     html += `<div class="success__summary-total">Итого: ${total.toLocaleString('ru-RU')} ₽</div>`;
 
     summary.innerHTML = html;

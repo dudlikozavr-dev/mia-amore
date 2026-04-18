@@ -140,13 +140,13 @@ const Product = {
 
     // Описание
     const desc = document.getElementById('product-desc');
-    desc.textContent = p.description;
+    desc.textContent = p.description || '';
     desc.classList.remove('expanded');
     document.getElementById('btn-desc-toggle').textContent = 'Подробнее';
     document.getElementById('btn-desc-toggle').hidden = false;
 
     const care = document.getElementById('product-care');
-    care.textContent = p.care;
+    care.textContent = p.care || '';
     care.hidden = true;
 
     // Telegram: BackButton + MainButton

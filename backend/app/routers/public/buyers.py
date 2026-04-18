@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends
+import json
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -94,9 +96,26 @@ class MyOrderOut(BaseModel):
 async def get_my_orders(
     telegram_id: int,
     db: AsyncSession = Depends(get_db),
-    _: dict = Depends(require_init_data),
+    init_data: dict = Depends(require_init_data),
 ):
-    """История заказов покупателя по telegram_id."""
+    """История заказов покупателя по telegram_id.
+
+    Запрашивать можно только свои заказы: telegram_id в URL должен
+    совпадать с id из проверенной initData. В dev-режиме initData
+    может быть пустым — тогда проверка пропускается.
+    """
+    user_json = init_data.get("user") if init_data else None
+    if user_json:
+        try:
+            user_id = json.loads(user_json).get("id")
+        except (ValueError, TypeError):
+            user_id = None
+        if user_id != telegram_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Можно запрашивать только свои заказы",
+            )
+
     result = await db.execute(
         select(Buyer).where(Buyer.telegram_id == telegram_id)
     )
