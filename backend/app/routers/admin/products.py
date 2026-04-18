@@ -28,6 +28,7 @@ class ProductIn(BaseModel):
     stock: int = 0
     sizes: list[str] = []
     disabled_sizes: list[str] = []
+    size_stock: dict[str, int] = {}
     colors: list[dict] = []
     description: str | None = None
     care: str | None = None
@@ -54,6 +55,7 @@ class ProductOut(BaseModel):
     stock: int
     sizes: list[str]
     disabled_sizes: list[str]
+    size_stock: dict[str, int] = {}
     colors: list[dict]
     description: str | None
     care: str | None
@@ -105,7 +107,8 @@ async def create_product(
     db: AsyncSession = Depends(get_db),
     _: None = Depends(require_admin),
 ):
-    product = Product(**body.model_dump())
+    data = _derive_stock_fields(body.model_dump())
+    product = Product(**data)
     db.add(product)
     await db.flush()
     await db.refresh(product, attribute_names=["images"])
@@ -128,7 +131,8 @@ async def update_product(
     if not product:
         raise HTTPException(status_code=404, detail="Товар не найден")
 
-    for field, value in body.model_dump().items():
+    data = _derive_stock_fields(body.model_dump())
+    for field, value in data.items():
         setattr(product, field, value)
 
     await db.flush()
@@ -273,6 +277,15 @@ async def delete_image(
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
+def _derive_stock_fields(data: dict) -> dict:
+    """Если задан size_stock — считаем stock=sum и disabled_sizes=где 0."""
+    size_stock = data.get("size_stock") or {}
+    if size_stock:
+        data["stock"] = sum(int(v) for v in size_stock.values())
+        data["disabled_sizes"] = [s for s, q in size_stock.items() if int(q) <= 0]
+    return data
+
+
 def _product_out(p: Product) -> ProductOut:
     return ProductOut(
         id=p.id,
@@ -286,6 +299,7 @@ def _product_out(p: Product) -> ProductOut:
         stock=p.stock,
         sizes=p.sizes or [],
         disabled_sizes=p.disabled_sizes or [],
+        size_stock=p.size_stock or {},
         colors=p.colors or [],
         description=p.description,
         care=p.care,

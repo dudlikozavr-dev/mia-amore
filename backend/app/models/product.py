@@ -22,6 +22,7 @@ class Product(Base):
     stock: Mapped[int] = mapped_column(Integer, default=0)
     sizes: Mapped[list] = mapped_column(ARRAY(Text), default=[])
     disabled_sizes: Mapped[list] = mapped_column(ARRAY(Text), default=[])
+    size_stock: Mapped[dict] = mapped_column(JSONB, default=dict)
     colors: Mapped[list] = mapped_column(JSONB, default=[])
     description: Mapped[str | None] = mapped_column(Text)
     care: Mapped[str | None] = mapped_column(Text)

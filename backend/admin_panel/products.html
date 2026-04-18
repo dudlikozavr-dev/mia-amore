@@ -138,29 +138,24 @@
         </div>
       </div>
 
-      <div class="form-2col">
-        <div class="form-row">
-          <label>Остаток, шт.</label>
-          <input type="number" id="f-stock" value="0" min="0">
-        </div>
-        <div class="form-row">
-          <label>Бейдж</label>
-          <select id="f-badge">
-            <option value="">нет</option>
-            <option value="hit">Хит</option>
-            <option value="new">Новинка</option>
-          </select>
-        </div>
+      <div class="form-row">
+        <label>Бейдж</label>
+        <select id="f-badge">
+          <option value="">нет</option>
+          <option value="hit">Хит</option>
+          <option value="new">Новинка</option>
+        </select>
       </div>
 
       <div class="form-row">
         <label>Размеры (через запятую)</label>
-        <input type="text" id="f-sizes" placeholder="XS, S, M, L, XL">
+        <input type="text" id="f-sizes" placeholder="XS, S, M, L, XL" oninput="renderSizeStock()">
       </div>
 
       <div class="form-row">
-        <label>Недоступные размеры (через запятую)</label>
-        <input type="text" id="f-disabled-sizes" placeholder="XL">
+        <label>Остаток по размерам <span id="f-stock-total" style="color:#636366;font-weight:400">— всего 0 шт.</span></label>
+        <div id="f-size-stock" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px"></div>
+        <div style="font-size:12px;color:#636366;margin-top:6px">Размер с 0 автоматически считается недоступным.</div>
       </div>
 
       <div class="form-row">
@@ -273,10 +268,9 @@ async function openModal(product = null) {
   document.getElementById('f-material-label').value = product?.material_label || '';
   document.getElementById('f-price').value = product?.price || '';
   document.getElementById('f-old-price').value = product?.old_price || '';
-  document.getElementById('f-stock').value = product?.stock ?? 0;
   document.getElementById('f-badge').value = product?.badge || '';
   document.getElementById('f-sizes').value = (product?.sizes || []).join(', ');
-  document.getElementById('f-disabled-sizes').value = (product?.disabled_sizes || []).join(', ');
+  renderSizeStock(product?.size_stock || {});
   document.getElementById('f-colors').value = product?.colors
     ? JSON.stringify(product.colors, null, 2) : '';
   document.getElementById('f-description').value = product?.description || '';
@@ -329,6 +323,36 @@ async function editProduct(id) {
   } catch(e) { alert('Ошибка: ' + e.message); }
 }
 
+/** Перерисовать сетку инпутов «остаток по размерам» из поля «Размеры».
+ *  existing — объект {XS: 1, ...} для редактирования; иначе читаем текущие значения из DOM. */
+function renderSizeStock(existing = null) {
+  const sizes = document.getElementById('f-sizes').value
+    .split(',').map(s=>s.trim()).filter(Boolean);
+  const grid = document.getElementById('f-size-stock');
+  // если existing не передан — сохранить то, что уже введено
+  const current = existing || readSizeStockFromDom();
+  grid.innerHTML = sizes.map(s => `
+    <label style="display:flex;flex-direction:column;font-size:12px;color:#636366;font-weight:500">
+      ${s}
+      <input type="number" min="0" value="${current[s] ?? 0}"
+             data-size="${s}" style="margin-top:4px" oninput="updateStockTotal()">
+    </label>`).join('') || '<span style="color:#636366;font-size:13px">Сначала укажите размеры выше.</span>';
+  updateStockTotal();
+}
+
+function readSizeStockFromDom() {
+  const obj = {};
+  document.querySelectorAll('#f-size-stock input[data-size]').forEach(inp => {
+    obj[inp.dataset.size] = parseInt(inp.value) || 0;
+  });
+  return obj;
+}
+
+function updateStockTotal() {
+  const total = Object.values(readSizeStockFromDom()).reduce((a,b)=>a+(b||0), 0);
+  document.getElementById('f-stock-total').textContent = `— всего ${total} шт.`;
+}
+
 async function saveProduct(e) {
   e.preventDefault();
   const btn = document.getElementById('save-btn');
@@ -340,6 +364,7 @@ async function saveProduct(e) {
     if (raw) colors = JSON.parse(raw);
   } catch { alert('Неверный JSON в поле «Цвета»'); btn.disabled=false; btn.textContent='Сохранить'; return; }
 
+  const size_stock = readSizeStockFromDom();
   const body = {
     category_id: parseInt(document.getElementById('f-category').value) || null,
     name: document.getElementById('f-name').value.trim(),
@@ -347,10 +372,9 @@ async function saveProduct(e) {
     material_label: document.getElementById('f-material-label').value.trim() || null,
     price: parseInt(document.getElementById('f-price').value),
     old_price: parseInt(document.getElementById('f-old-price').value) || null,
-    stock: parseInt(document.getElementById('f-stock').value) || 0,
     badge: document.getElementById('f-badge').value || null,
     sizes: document.getElementById('f-sizes').value.split(',').map(s=>s.trim()).filter(Boolean),
-    disabled_sizes: document.getElementById('f-disabled-sizes').value.split(',').map(s=>s.trim()).filter(Boolean),
+    size_stock,
     colors,
     description: document.getElementById('f-description').value.trim() || null,
     care: document.getElementById('f-care').value.trim() || null,

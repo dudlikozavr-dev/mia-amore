@@ -97,7 +97,12 @@ const Product = {
     // Нормализуем поля API → формат компонента
     p.oldPrice    = p.old_price;
     p.materialLabel = p.material_label;
-    p.disabledSizes = p.disabled_sizes || [];
+    p.sizeStock = p.size_stock || {};
+    // Если задан size_stock — он единственный источник правды по недоступным размерам
+    const fromStock = Object.keys(p.sizeStock).length
+      ? p.sizes.filter(s => (p.sizeStock[s] ?? 0) <= 0)
+      : null;
+    p.disabledSizes = fromStock ?? (p.disabled_sizes || []);
     // images из API: [{id, url, sort_order, image_type}] → только галерея
     p.imageUrls = (p.images || [])
       .filter(img => img.image_type !== 'size_chart')

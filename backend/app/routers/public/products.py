@@ -55,6 +55,7 @@ class ProductDetail(BaseModel):
     stock: int
     sizes: list[str]
     disabled_sizes: list[str]
+    size_stock: dict[str, int] = {}
     colors: list[dict]
     description: str | None
     care: str | None
@@ -158,6 +159,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         stock=product.stock,
         sizes=product.sizes or [],
         disabled_sizes=product.disabled_sizes or [],
+        size_stock=product.size_stock or {},
         colors=product.colors or [],
         description=product.description,
         care=product.care,
