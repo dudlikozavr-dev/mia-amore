@@ -169,19 +169,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // 6. Кнопка «Поделиться»
   document.getElementById('btn-share').addEventListener('click', () => {
     TG.hapticLight();
-    const text = 'Смотри, нашла классный магазин шёлковой домашней одежды 🌸';
     const url = 'https://t.me/sikretsweet_home_bot/app';
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
-    // На мобильном — открыть диалог шаринга, на Desktop — скопировать ссылку
-    if (window.Telegram?.WebApp?.openTelegramLink && !navigator.userAgent.includes('Electron')) {
-      window.Telegram.WebApp.openTelegramLink(shareUrl);
-    } else {
-      navigator.clipboard?.writeText(url).then(() => {
-        window.Telegram?.WebApp?.showAlert('Ссылка скопирована! Отправь её друзьям 🌸');
-      }).catch(() => {
-        window.Telegram?.WebApp?.showAlert(`Ссылка на магазин:\n${url}`);
-      });
-    }
+    navigator.clipboard?.writeText(url).then(() => {
+      window.Telegram?.WebApp?.showAlert('Ссылка скопирована! Отправь её друзьям 🌸');
+    }).catch(() => {
+      window.Telegram?.WebApp?.showAlert('Ссылка на магазин:\nhttps://t.me/sikretsweet_home_bot/app');
+    });
   });
 
   // 7. Фикс позиции nav для Telegram Desktop.
