@@ -171,11 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     TG.hapticLight();
     const text = 'Смотри, нашла классный магазин шёлковой домашней одежды 🌸';
     const url = 'https://t.me/sikretsweet_home_bot/app';
-    if (window.Telegram?.WebApp?.switchInlineQuery) {
-      window.Telegram.WebApp.switchInlineQuery(text);
-    } else {
-      TG.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
-    }
+    TG.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
   });
 
   // 7. Фикс позиции nav для Telegram Desktop.
