@@ -51,8 +51,8 @@ async def require_api_key(request: Request) -> str:
 class OrderItemIn(BaseModel):
     product_id: int | None = None
     product_name: str
-    size: str
-    color: str
+    size: str | None = None  # опционально для веб-заказов
+    color: str | None = None  # опционально для веб-заказов
     qty: int
     unit_price: int
 
