@@ -171,7 +171,17 @@ document.addEventListener('DOMContentLoaded', () => {
     TG.hapticLight();
     const text = 'Смотри, нашла классный магазин шёлковой домашней одежды 🌸';
     const url = 'https://t.me/sikretsweet_home_bot/app';
-    TG.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+    // На мобильном — открыть диалог шаринга, на Desktop — скопировать ссылку
+    if (window.Telegram?.WebApp?.openTelegramLink && !navigator.userAgent.includes('Electron')) {
+      window.Telegram.WebApp.openTelegramLink(shareUrl);
+    } else {
+      navigator.clipboard?.writeText(url).then(() => {
+        window.Telegram?.WebApp?.showAlert('Ссылка скопирована! Отправь её друзьям 🌸');
+      }).catch(() => {
+        window.Telegram?.WebApp?.showAlert(`Ссылка на магазин:\n${url}`);
+      });
+    }
   });
 
   // 7. Фикс позиции nav для Telegram Desktop.
