@@ -1,22 +1,24 @@
 """
-POST /api/orders — оформление заказа из Mini App.
+POST /api/orders — оформление заказа из Mini App (требует Telegram initData).
+POST /api/orders/web — оформление заказа с внешнего сайта (требует API ключ).
 
 Алгоритм:
-1. Валидация initData (зависимость require_init_data)
-2. Upsert покупателя (если telegram_id передан)
+1. Валидация (initData или API ключ)
+2. Upsert покупателя (если telegram_id передан, только для Mini App)
 3. Создать Order + OrderItem[]  (notification_sent = false)
 4. Ответить 201 немедленно
 5. Background task: уведомить Дениса → при успехе notification_sent = true
-6. Background task: уведомить покупателя
+6. Background task: уведомить покупателя (если telegram_id известен)
 """
 import asyncio
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from pydantic import BaseModel, field_validator
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_db, AsyncSessionLocal
 from app.models.buyer import Buyer
 from app.models.order import Order, OrderItem
@@ -32,6 +34,16 @@ router = APIRouter(prefix="/api", tags=["public"])
 
 DELIVERY_COST = {"cdek": 300, "post": 250}
 FREE_DELIVERY_THRESHOLD = 3000
+
+
+# ─── Зависимость для проверки API ключа ────────────────────────────────────────
+
+async def require_api_key(request: Request) -> str:
+    """Проверяет API ключ в заголовке X-Api-Key."""
+    api_key = request.headers.get("X-Api-Key", "")
+    if not api_key or api_key != settings.admin_api_token:
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    return api_key
 
 
 # ─── Схемы входящего запроса ──────────────────────────────────────────────────
@@ -238,6 +250,119 @@ async def create_order(
     )
 
     # 6. Фоновая задача — запускается после ответа 201
+    background_tasks.add_task(_send_notifications, order.id, order_data)
+
+    return result
+
+
+# ─── Эндпоинт для веб-сайтов (без Telegram auth) ────────────────────────────────
+
+@router.post("/orders/web", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
+async def create_web_order(
+    body: OrderIn,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    _: str = Depends(require_api_key),
+):
+    """
+    Создание заказа с внешнего сайта (например, sikretsweet.ru).
+    Требует API ключ в заголовке X-Api-Key.
+
+    Не требует Telegram initData, но может содержать buyer_telegram_id = null.
+    """
+    # 1. Upsert покупателя (только если передан telegram_id — маловероятно для веб)
+    buyer_id: int | None = None
+    if body.buyer_telegram_id:
+        result = await db.execute(
+            select(Buyer).where(Buyer.telegram_id == body.buyer_telegram_id)
+        )
+        buyer = result.scalar_one_or_none()
+
+        if buyer:
+            buyer.last_active_at = func.now()
+        else:
+            buyer = Buyer(
+                telegram_id=body.buyer_telegram_id,
+                username=body.buyer_username,
+                first_name=body.buyer_name,
+            )
+            db.add(buyer)
+            await db.flush()
+
+        buyer_id = buyer.id
+
+    # 2. Считаем суммы
+    subtotal = sum(item.unit_price * item.qty for item in body.items)
+    delivery_cost = 0 if subtotal >= FREE_DELIVERY_THRESHOLD else DELIVERY_COST.get(body.delivery_method, 300)
+    total = subtotal + delivery_cost
+
+    # 3. Создаём Order
+    order = Order(
+        order_number="",
+        buyer_id=buyer_id,
+        status="new",
+        subtotal=subtotal,
+        delivery_cost=delivery_cost,
+        total=total,
+        delivery_method=body.delivery_method,
+        payment_method=body.payment_method,
+        buyer_name=body.buyer_name,
+        buyer_phone=body.buyer_phone,
+        city=body.city,
+        address=body.address,
+        notes=body.notes,
+    )
+    db.add(order)
+    await db.flush()
+
+    order.order_number = f"#{1000 + order.id}"
+
+    # 4. Добавляем позиции
+    for item in body.items:
+        db.add(OrderItem(
+            order_id=order.id,
+            product_id=item.product_id,
+            product_name=item.product_name,
+            size=item.size,
+            color=item.color,
+            qty=item.qty,
+            unit_price=item.unit_price,
+        ))
+
+    await db.flush()
+
+    # 5. Данные для уведомлений
+    order_data = {
+        "order_id": order.id,
+        "order_number": order.order_number,
+        "buyer_name": body.buyer_name,
+        "buyer_phone": body.buyer_phone,
+        "buyer_username": body.buyer_username,
+        "buyer_telegram_id": body.buyer_telegram_id,
+        "city": body.city,
+        "address": body.address,
+        "notes": body.notes,
+        "delivery_method": body.delivery_method,
+        "total": total,
+        "items": [
+            {
+                "product_name": i.product_name,
+                "size": i.size,
+                "color": i.color,
+                "qty": i.qty,
+            }
+            for i in body.items
+        ],
+    }
+
+    result = OrderOut(
+        id=order.id,
+        order_number=order.order_number,
+        total=total,
+        status="new",
+    )
+
+    # 6. Фоновая задача — уведомить админа
     background_tasks.add_task(_send_notifications, order.id, order_data)
 
     return result
