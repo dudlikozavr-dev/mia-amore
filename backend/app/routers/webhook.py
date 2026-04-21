@@ -44,11 +44,23 @@ async def initialize_bot() -> None:
     backend_url = getattr(settings, "backend_url", "").rstrip("/")
     if backend_url:
         webhook_url = f"{backend_url}/webhook"
-        await app.bot.set_webhook(
-            url=webhook_url,
-            allowed_updates=["message", "callback_query"],
-        )
-        logger.info(f"Webhook зарегистрирован: {webhook_url}")
+        try:
+            import asyncio
+            from telegram.error import RetryAfter
+            for attempt in range(5):
+                try:
+                    await app.bot.set_webhook(
+                        url=webhook_url,
+                        allowed_updates=["message", "callback_query"],
+                    )
+                    logger.info(f"Webhook зарегистрирован: {webhook_url}")
+                    break
+                except RetryAfter as e:
+                    wait = e.retry_after + 1
+                    logger.warning(f"Flood control, ждём {wait}s (попытка {attempt+1}/5)")
+                    await asyncio.sleep(wait)
+        except Exception as e:
+            logger.error(f"Не удалось зарегистрировать webhook: {e}")
     else:
         logger.warning("BACKEND_URL не задан — webhook не зарегистрирован")
 
