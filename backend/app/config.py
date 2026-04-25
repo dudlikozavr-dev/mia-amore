@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     bot_token: str = ""
     bot_token_test: str = ""
     admin_telegram_id: int = 0
+    payment_provider_token: str = ""
 
     # Безопасность
     admin_api_token: str = ""

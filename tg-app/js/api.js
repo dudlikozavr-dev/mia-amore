@@ -112,3 +112,21 @@ async function createOrder(orderData) {
     }),
   });
 }
+
+/**
+ * Создаёт заказ и возвращает ссылку на Telegram Invoice (ЮКасса).
+ * @param {Object} orderData — данные из формы checkout.js
+ * @returns {Object} — { id, order_number, total, invoice_link }
+ */
+async function createOrderInvoice(orderData) {
+  const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+
+  return _apiRequest('/api/orders/invoice', {
+    method: 'POST',
+    body: JSON.stringify({
+      buyer_telegram_id: user?.id || null,
+      buyer_username: user?.username || null,
+      ...orderData,
+    }),
+  });
+}

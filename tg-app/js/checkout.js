@@ -131,63 +131,62 @@ const Checkout = {
     const delivery = Store.getDelivery(Checkout._delivery);
     const total = subtotal - discount + delivery;
 
+    const orderItems = storeItems.map(item => {
+      const prod = Catalog._products.find(p => p.id === item.productId);
+      return {
+        product_id: item.productId,
+        product_name: prod?.name || '',
+        size: item.size,
+        color: item.color,
+        qty: item.qty,
+        unit_price: prod?.price || 0,
+      };
+    });
+
     try {
-      // Реальный запрос к бэкенду
-      const result = await createOrder({
+      const result = await createOrderInvoice({
         buyer_name: buyerName,
         buyer_phone: buyerPhone,
         city,
         address,
         notes: notes || null,
         delivery_method: Checkout._delivery,
-        payment_method: Checkout._payment,
-        items: storeItems.map(item => {
-          const prod = Catalog._products.find(p => p.id === item.productId);
-          return {
-            product_id: item.productId,
-            product_name: prod?.name || '',
-            size: item.size,
-            color: item.color,
-            qty: item.qty,
-            unit_price: prod?.price || 0,
-          };
-        }),
+        payment_method: 'online',
+        items: orderItems,
       });
 
       TG.hideMainButtonProgress();
 
-      // Данные для экрана успеха
-      const order = {
-        id: result.id,
-        orderNumber: result.order_number,
-        items: storeItems.map(item => {
-          const prod = Catalog._products.find(p => p.id === item.productId);
-          return {
-            name: prod?.name || '',
-            size: item.size,
-            color: item.color,
-            qty: item.qty,
-            price: prod?.price || 0,
+      window.Telegram.WebApp.openInvoice(result.invoice_link, status => {
+        if (status === 'paid') {
+          const successOrder = {
+            id: result.id,
+            orderNumber: result.order_number,
+            items: storeItems.map(item => {
+              const prod = Catalog._products.find(p => p.id === item.productId);
+              return { name: prod?.name || '', size: item.size, color: item.color, qty: item.qty, price: prod?.price || 0 };
+            }),
+            subtotal,
+            delivery,
+            deliveryMethod: Checkout._delivery === 'cdek' ? 'СДЭК' : 'Почта России',
+            payment: 'Онлайн',
+            address: `${city}, ${address}`,
+            name: buyerName,
+            phone: buyerPhone,
+            total,
           };
-        }),
-        subtotal,
-        delivery,
-        deliveryMethod: Checkout._delivery === 'cdek' ? 'СДЭК' : 'Почта России',
-        payment: 'Онлайн',
-        address: `${city}, ${address}`,
-        name: buyerName,
-        phone: buyerPhone,
-        total,
-      };
-
-      Store.clear();
-      Router.go('success', order);
+          Store.clear();
+          Router.go('success', successOrder);
+        } else if (status === 'cancelled' || status === 'failed') {
+          TG.hapticError();
+          window.Telegram?.WebApp?.showAlert('Оплата не прошла. Попробуйте ещё раз.');
+        }
+      });
 
     } catch (err) {
       TG.hideMainButtonProgress();
       TG.hapticError();
-      // Показываем ошибку через нативный Telegram alert
-      window.Telegram?.WebApp?.showAlert(`Не удалось оформить заказ: ${err.message}`);
+      window.Telegram?.WebApp?.showAlert(`Не удалось создать платёж: ${err.message}`);
     }
   },
 
