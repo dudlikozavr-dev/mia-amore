@@ -20,6 +20,7 @@ from pydantic import BaseModel, field_validator
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from telegram import LabeledPrice
+from telegram.error import TelegramError
 
 from app.config import settings
 from app.database import get_db, AsyncSessionLocal
@@ -279,14 +280,21 @@ async def create_order_invoice(
     items_desc = ", ".join(f"{i.product_name} ×{i.qty}" for i in body.items)[:255]
 
     bot = _get_bot()
-    invoice_link = await bot.create_invoice_link(
-        title="Mia-Amore",
-        description=items_desc,
-        payload=str(order.id),
-        provider_token=settings.payment_provider_token,
-        currency="RUB",
-        prices=prices,
-    )
+    if not bot:
+        raise HTTPException(status_code=503, detail="Бот не настроен")
+
+    try:
+        invoice_link = await bot.create_invoice_link(
+            title="Mia-Amore",
+            description=items_desc,
+            payload=str(order.id),
+            provider_token=settings.payment_provider_token,
+            currency="RUB",
+            prices=prices,
+        )
+    except TelegramError as e:
+        logger.error(f"create_invoice_link error: {e}")
+        raise HTTPException(status_code=502, detail=f"Telegram: {e}")
 
     # get_db commits on successful return
     return InvoiceOut(id=order.id, order_number=order.order_number, total=total, invoice_link=invoice_link)

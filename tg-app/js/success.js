@@ -19,7 +19,7 @@ const Success = {
     TG.hapticSuccess();
 
     // Номер заказа
-    document.getElementById('success-order-id').textContent = `Заказ #${order.id}`;
+    document.getElementById('success-order-id').textContent = `Заказ ${order.orderNumber || ('#' + order.id)}`;
 
     // Сводка
     const summary = document.getElementById('success-summary');
