@@ -11,6 +11,7 @@ import logging
 
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import TelegramError
+from telegram.request import HTTPXRequest
 
 from app.config import settings
 
@@ -21,6 +22,8 @@ def _get_bot() -> Bot | None:
     token = settings.bot_token if not settings.is_dev else (settings.bot_token_test or settings.bot_token)
     if not token:
         return None
+    if settings.telegram_proxy_url:
+        return Bot(token=token, request=HTTPXRequest(proxy=settings.telegram_proxy_url))
     return Bot(token=token)
 
 

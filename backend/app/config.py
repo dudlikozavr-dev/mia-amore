@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     # Пример: https://mia-amore-api.up.railway.app
     backend_url: str = ""
 
+    # Прокси для Telegram API (если провайдер блокирует api.telegram.org)
+    # Пример: socks5://127.0.0.1:9050 (Tor)
+    telegram_proxy_url: str = ""
+
     @property
     def is_dev(self) -> bool:
         return self.environment == "development"

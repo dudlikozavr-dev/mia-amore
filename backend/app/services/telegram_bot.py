@@ -456,7 +456,10 @@ def build_application() -> Application:
     if not token:
         raise RuntimeError("BOT_TOKEN не задан в .env")
 
-    app = Application.builder().token(token).build()
+    builder = Application.builder().token(token)
+    if settings.telegram_proxy_url:
+        builder = builder.proxy(settings.telegram_proxy_url)
+    app = builder.build()
 
     app.add_handler(CommandHandler("start",     cmd_start))
     app.add_handler(CommandHandler("orders",    cmd_orders))
