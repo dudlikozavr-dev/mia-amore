@@ -269,8 +269,10 @@ async def create_order_invoice(
 
     # Flush order first to get the ID needed for the invoice payload.
     # get_db rolls back automatically if create_invoice_link raises below.
+    # Статус заказа = 'new' (БД допускает только new/confirmed/shipped/delivered/cancelled).
+    # Факт оплаты отслеживается отдельной колонкой payment_status.
     order = await _persist_order(
-        db, body, buyer_id, subtotal, delivery_cost, total, status="pending_payment"
+        db, body, buyer_id, subtotal, delivery_cost, total, status="new"
     )
 
     prices = [LabeledPrice("Товары", subtotal * 100)]
