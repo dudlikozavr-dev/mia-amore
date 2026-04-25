@@ -6,7 +6,7 @@ const Checkout = {
   /** Выбранная доставка */
   _delivery: 'cdek',
   /** Выбранная оплата */
-  _payment: 'cod',
+  _payment: 'online',
 
   /** Инициализация */
   init() {
@@ -173,7 +173,7 @@ const Checkout = {
         subtotal,
         delivery,
         deliveryMethod: Checkout._delivery === 'cdek' ? 'СДЭК' : 'Почта России',
-        payment: Checkout._payment === 'cod' ? 'При получении' : 'Онлайн',
+        payment: 'Онлайн',
         address: `${city}, ${address}`,
         name: buyerName,
         phone: buyerPhone,

@@ -166,18 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     BottomNav.setActive('success');
   });
 
-  // 6. Кнопка «Поделиться»
-  document.getElementById('btn-share').addEventListener('click', () => {
-    TG.hapticLight();
-    const url = 'https://t.me/sikretsweet_home_bot/app';
-    navigator.clipboard?.writeText(url).then(() => {
-      window.Telegram?.WebApp?.showAlert('Ссылка скопирована! Отправь её друзьям 🌸');
-    }).catch(() => {
-      window.Telegram?.WebApp?.showAlert('Ссылка на магазин:\nhttps://t.me/sikretsweet_home_bot/app');
-    });
-  });
-
-  // 7. Фикс позиции nav для Telegram Desktop.
+  // 6. Фикс позиции nav для Telegram Desktop.
   // Telegram рендерит свой нативный бар поверх WebView снизу,
   // из-за чего viewportHeight < innerHeight и nav уходит под бар.
   (function fixNavForTelegram() {
