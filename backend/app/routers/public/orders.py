@@ -293,8 +293,11 @@ async def create_order_invoice(
             prices=prices,
         )
     except TelegramError as e:
-        logger.error(f"create_invoice_link error: {e}")
+        logger.error(f"create_invoice_link TelegramError: {e}")
         raise HTTPException(status_code=502, detail=f"Telegram: {e}")
+    except Exception as e:
+        logger.error(f"create_invoice_link unexpected error: {e}", exc_info=True)
+        raise HTTPException(status_code=502, detail=f"Не удалось создать платёж: {type(e).__name__}: {e}")
 
     # get_db commits on successful return
     return InvoiceOut(id=order.id, order_number=order.order_number, total=total, invoice_link=invoice_link)
