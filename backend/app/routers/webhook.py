@@ -38,7 +38,11 @@ async def initialize_bot() -> None:
     if app is None:
         return
 
-    await app.initialize()
+    try:
+        await app.initialize()
+    except Exception as e:
+        logger.warning(f"Не удалось инициализировать бота: {e}. Продолжаем без бота.")
+        return
 
     # Регистрируем webhook если задан URL бэкенда
     backend_url = getattr(settings, "backend_url", "").rstrip("/")
