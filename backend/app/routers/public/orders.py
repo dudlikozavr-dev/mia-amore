@@ -13,7 +13,9 @@ POST /api/orders/web    — оформление заказа с внешнег�
   5. Commit  6. Ответить 201 с invoice_link
   После оплаты Telegram шлёт successful_payment в webhook → статус меняется на paid.
 """
+import json
 import logging
+import re
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from pydantic import BaseModel, field_validator
@@ -26,9 +28,9 @@ from app.config import settings
 from app.database import get_db, AsyncSessionLocal
 from app.models.buyer import Buyer
 from app.models.order import Order, OrderItem
+from app.routers.webhook import get_ptb_app
 from app.services.auth import require_init_data
 from app.services.notifications import (
-    _get_bot,
     notify_admin_new_order,
     notify_buyer_order_accepted,
 )
@@ -156,6 +158,57 @@ def _calculate_totals(items: list[OrderItemIn], delivery_method: str) -> tuple[i
     return subtotal, delivery_cost, subtotal + delivery_cost
 
 
+def _normalize_phone_e164(phone: str) -> str:
+    """Российский номер → E.164: '8 (916) 268-84-48' → '+79162688448'."""
+    digits = re.sub(r"\D", "", phone or "")
+    if len(digits) == 11 and digits.startswith("8"):
+        digits = "7" + digits[1:]
+    elif len(digits) == 10:
+        digits = "7" + digits
+    return "+" + digits if digits else ""
+
+
+def _build_yookassa_receipt(body: "OrderIn", delivery_cost: int) -> dict:
+    """Собирает чек ЮКассы для 54-ФЗ (provider_data)."""
+    receipt_items = []
+    for item in body.items:
+        receipt_items.append({
+            "description": (item.product_name or "Товар")[:128],
+            "quantity": str(item.qty),
+            "amount": {
+                "value": f"{item.unit_price:.2f}",
+                "currency": "RUB",
+            },
+            "vat_code": settings.yookassa_vat_code,
+            "payment_subject": "commodity",
+            "payment_mode": "full_prepayment",
+        })
+
+    if delivery_cost > 0:
+        delivery_label = DELIVERY_LABELS.get(body.delivery_method, "Доставка")
+        receipt_items.append({
+            "description": f"Доставка: {delivery_label}"[:128],
+            "quantity": "1",
+            "amount": {
+                "value": f"{delivery_cost:.2f}",
+                "currency": "RUB",
+            },
+            "vat_code": settings.yookassa_vat_code,
+            "payment_subject": "service",
+            "payment_mode": "full_prepayment",
+        })
+
+    return {
+        "receipt": {
+            "customer": {
+                "phone": _normalize_phone_e164(body.buyer_phone),
+            },
+            "items": receipt_items,
+            "tax_system_code": settings.yookassa_tax_system_code,
+        }
+    }
+
+
 async def _persist_order(
     db: AsyncSession,
     body: OrderIn,
@@ -264,16 +317,30 @@ async def create_order_invoice(
     if not settings.payment_provider_token:
         raise HTTPException(status_code=503, detail="Оплата временно недоступна")
 
-    buyer_id = await _upsert_buyer(db, body.buyer_telegram_id, body.buyer_username, body.buyer_name)
+    ptb_app = get_ptb_app()
+    if ptb_app is None or not getattr(ptb_app, "_initialized", False):
+        raise HTTPException(status_code=503, detail="Бот не инициализирован")
+    bot = ptb_app.bot
+
+    try:
+        buyer_id = await _upsert_buyer(db, body.buyer_telegram_id, body.buyer_username, body.buyer_name)
+    except Exception as e:
+        logger.error(f"invoice _upsert_buyer error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Покупатель: {type(e).__name__}: {e}")
+
     subtotal, delivery_cost, total = _calculate_totals(body.items, body.delivery_method)
 
     # Flush order first to get the ID needed for the invoice payload.
     # get_db rolls back automatically if create_invoice_link raises below.
     # Статус заказа = 'new' (БД допускает только new/confirmed/shipped/delivered/cancelled).
     # Факт оплаты отслеживается отдельной колонкой payment_status.
-    order = await _persist_order(
-        db, body, buyer_id, subtotal, delivery_cost, total, status="new"
-    )
+    try:
+        order = await _persist_order(
+            db, body, buyer_id, subtotal, delivery_cost, total, status="new"
+        )
+    except Exception as e:
+        logger.error(f"invoice _persist_order error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Сохранение заказа: {type(e).__name__}: {e}")
 
     prices = [LabeledPrice("Товары", subtotal * 100)]
     if delivery_cost > 0:
@@ -281,9 +348,9 @@ async def create_order_invoice(
 
     items_desc = ", ".join(f"{i.product_name} ×{i.qty}" for i in body.items)[:255]
 
-    bot = _get_bot()
-    if not bot:
-        raise HTTPException(status_code=503, detail="Бот не настроен")
+    # Фискальный чек для ЮКассы (54-ФЗ): обязательно для приёма платежей.
+    # Telegram API ожидает provider_data строкой JSON.
+    provider_data_json = json.dumps(_build_yookassa_receipt(body, delivery_cost), ensure_ascii=False)
 
     try:
         invoice_link = await bot.create_invoice_link(
@@ -293,6 +360,7 @@ async def create_order_invoice(
             provider_token=settings.payment_provider_token,
             currency="RUB",
             prices=prices,
+            provider_data=provider_data_json,
         )
     except TelegramError as e:
         logger.error(f"create_invoice_link TelegramError: {e}")

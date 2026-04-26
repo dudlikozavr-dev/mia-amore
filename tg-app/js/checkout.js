@@ -111,6 +111,8 @@ const Checkout = {
 
   /** Отправка заказа */
   async _submit() {
+    console.log('[checkout] _submit start, payment=', Checkout._payment);
+
     if (!Checkout._isValid()) {
       TG.hapticError();
       Checkout._highlightErrors();
@@ -119,50 +121,63 @@ const Checkout = {
 
     TG.showMainButtonProgress();
 
-    const buyerName = document.getElementById('input-name').value.trim();
-    const buyerPhone = document.getElementById('input-phone').value.trim();
-    const city = document.getElementById('input-city').value.trim();
-    const address = document.getElementById('input-address').value.trim();
-    const notes = document.getElementById('input-comment')?.value.trim() || null;
-
-    const storeItems = Store.getItems();
-    const subtotal = Store.getSubtotal();
-    const discount = Store.getDiscountAmount();
-    const delivery = Store.getDelivery(Checkout._delivery);
-    const total = subtotal - discount + delivery;
-
-    const orderItems = storeItems.map(item => {
-      const prod = Catalog._products.find(p => p.id === item.productId);
-      return {
-        product_id: item.productId,
-        product_name: prod?.name || '',
-        size: item.size,
-        color: item.color,
-        qty: item.qty,
-        unit_price: prod?.price || 0,
-      };
-    });
-
-    const baseOrder = {
-      buyer_name: buyerName,
-      buyer_phone: buyerPhone,
-      city,
-      address,
-      notes: notes || null,
-      delivery_method: Checkout._delivery,
-      items: orderItems,
-    };
-
-    const deliveryLabel = Checkout._delivery === 'cdek' ? 'СДЭК' : 'Почта России';
-    const itemsSummary = storeItems.map(item => {
-      const prod = Catalog._products.find(p => p.id === item.productId);
-      return { name: prod?.name || '', size: item.size, color: item.color, qty: item.qty, price: prod?.price || 0 };
-    });
-
     try {
+      const buyerName = document.getElementById('input-name').value.trim();
+      const buyerPhone = document.getElementById('input-phone').value.trim();
+      const city = document.getElementById('input-city').value.trim();
+      const address = document.getElementById('input-address').value.trim();
+      const notes = document.getElementById('input-comment')?.value.trim() || null;
+
+      const storeItems = Store.getItems();
+      if (!storeItems || storeItems.length === 0) {
+        throw new Error('Корзина пуста');
+      }
+
+      const subtotal = Store.getSubtotal();
+      const discount = Store.getDiscountAmount();
+      const delivery = Store.getDelivery(Checkout._delivery);
+      const total = subtotal - discount + delivery;
+
+      const products = (typeof Catalog !== 'undefined' && Array.isArray(Catalog._products)) ? Catalog._products : [];
+
+      const orderItems = storeItems.map(item => {
+        const prod = products.find(p => p.id === item.productId);
+        return {
+          product_id: item.productId,
+          product_name: prod?.name || `#${item.productId}`,
+          size: item.size,
+          color: item.color,
+          qty: item.qty,
+          unit_price: prod?.price || 1,
+        };
+      });
+
+      const baseOrder = {
+        buyer_name: buyerName,
+        buyer_phone: buyerPhone,
+        city,
+        address,
+        notes: notes || null,
+        delivery_method: Checkout._delivery,
+        items: orderItems,
+      };
+
+      const deliveryLabel = Checkout._delivery === 'cdek' ? 'СДЭК' : 'Почта России';
+      const itemsSummary = storeItems.map(item => {
+        const prod = products.find(p => p.id === item.productId);
+        return { name: prod?.name || `#${item.productId}`, size: item.size, color: item.color, qty: item.qty, price: prod?.price || 0 };
+      });
+
+      console.log('[checkout] sending order, items=', orderItems.length, 'total=', total);
+
       if (Checkout._payment === 'online') {
         const result = await createOrderInvoice({ ...baseOrder, payment_method: 'online' });
+        console.log('[checkout] invoice received', result);
         TG.hideMainButtonProgress();
+
+        if (!result?.invoice_link) {
+          throw new Error('Сервер не вернул ссылку на оплату');
+        }
 
         window.Telegram.WebApp.openInvoice(result.invoice_link, status => {
           if (status === 'paid') {
@@ -206,9 +221,11 @@ const Checkout = {
       }
 
     } catch (err) {
+      console.error('[checkout] submit error:', err);
       TG.hideMainButtonProgress();
       TG.hapticError();
-      window.Telegram?.WebApp?.showAlert(`Не удалось создать заказ: ${err.message}`);
+      const msg = err?.message || String(err) || 'Неизвестная ошибка';
+      window.Telegram?.WebApp?.showAlert(`Не удалось создать заказ: ${msg}`);
     }
   },
 

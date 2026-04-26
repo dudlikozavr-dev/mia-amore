@@ -19,19 +19,44 @@ function _getHeaders() {
   };
 }
 
-/** Базовый fetch с обработкой ошибок */
+/** Базовый fetch с обработкой ошибок и таймаутом */
 async function _apiRequest(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: { ..._getHeaders(), ...(options.headers || {}) },
-  });
+  const url = `${API_BASE}${path}`;
+  const controller = new AbortController();
+  const timeoutMs = options.timeoutMs || 30000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  console.log('[api]', options.method || 'GET', url);
+
+  let res;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: { ..._getHeaders(), ...(options.headers || {}) },
+      signal: controller.signal,
+    });
+  } catch (e) {
+    clearTimeout(timeoutId);
+    if (e.name === 'AbortError') {
+      throw new Error(`Таймаут запроса (${timeoutMs / 1000}s) — сервер не ответил`);
+    }
+    throw new Error(`Сеть: ${e.message || e.name || 'нет соединения'}`);
+  }
+  clearTimeout(timeoutId);
 
   if (!res.ok) {
     let detail = `Ошибка ${res.status}`;
+    let bodyText = '';
     try {
-      const body = await res.json();
-      if (body.detail) detail = body.detail;
-    } catch (_) {}
+      bodyText = await res.text();
+      const body = JSON.parse(bodyText);
+      if (body.detail) {
+        detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail);
+      }
+    } catch (_) {
+      if (bodyText) detail = `${detail}: ${bodyText.slice(0, 200)}`;
+    }
+    console.error('[api] error response', res.status, detail);
     throw new Error(detail);
   }
 

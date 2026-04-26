@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     # Пример: socks5://127.0.0.1:9050 (Tor)
     telegram_proxy_url: str = ""
 
+    # ЮКасса (Telegram Payments) — для фискального чека по 54-ФЗ
+    # tax_system_code: 1 ОСН, 2 УСН доходы, 3 УСН доходы-расходы, 6 Патент
+    # vat_code: 1 Без НДС, 2 НДС 0%, 3 НДС 10%, 4 НДС 20%
+    yookassa_tax_system_code: int = 3
+    yookassa_vat_code: int = 1
+
     @property
     def is_dev(self) -> bool:
         return self.environment == "development"

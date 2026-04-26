@@ -403,7 +403,10 @@ async def handle_successful_payment(update: Update, context: ContextTypes.DEFAUL
             logger.error("successful_payment: заказ #%s не найден", order_id)
             return
 
-        order.status = "paid"
+        # БД допускает только new/confirmed/shipped/delivered/cancelled.
+        # Факт оплаты — отдельная колонка payment_status.
+        order.payment_status = "paid"
+        order.status = "confirmed"
         order.notification_sent = True
         await db.commit()
 
