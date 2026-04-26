@@ -140,15 +140,20 @@ const Checkout = {
 
       const products = (typeof Catalog !== 'undefined' && Array.isArray(Catalog._products)) ? Catalog._products : [];
 
+      const discountRate = Store._discountRate || 0;
       const orderItems = storeItems.map(item => {
         const prod = products.find(p => p.id === item.productId);
+        const fullPrice = prod?.price || 1;
+        const discountedPrice = discountRate > 0
+          ? Math.round(fullPrice * (1 - discountRate))
+          : fullPrice;
         return {
           product_id: item.productId,
           product_name: prod?.name || `#${item.productId}`,
           size: item.size,
           color: item.color,
           qty: item.qty,
-          unit_price: prod?.price || 1,
+          unit_price: discountedPrice,
         };
       });
 
