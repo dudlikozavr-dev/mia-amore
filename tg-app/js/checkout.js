@@ -140,12 +140,13 @@ const Checkout = {
 
       const products = (typeof Catalog !== 'undefined' && Array.isArray(Catalog._products)) ? Catalog._products : [];
 
-      const discountRate = Store._discountRate || 0;
+      // Вычисляем эффективную ставку скидки из уже работающих методов Store
+      const effectiveRate = subtotal > 0 ? discount / subtotal : 0;
       const orderItems = storeItems.map(item => {
         const prod = products.find(p => p.id === item.productId);
         const fullPrice = prod?.price || 1;
-        const discountedPrice = discountRate > 0
-          ? Math.round(fullPrice * (1 - discountRate))
+        const discountedPrice = effectiveRate > 0
+          ? Math.round(fullPrice * (1 - effectiveRate))
           : fullPrice;
         return {
           product_id: item.productId,
