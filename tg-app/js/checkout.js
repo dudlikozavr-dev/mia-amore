@@ -142,12 +142,14 @@ const Checkout = {
 
       // Вычисляем эффективную ставку скидки из уже работающих методов Store
       const effectiveRate = subtotal > 0 ? discount / subtotal : 0;
+      console.log('[checkout] subtotal=', subtotal, 'discount=', discount, 'effectiveRate=', effectiveRate, 'products count=', products.length);
       const orderItems = storeItems.map(item => {
         const prod = products.find(p => p.id === item.productId);
         const fullPrice = prod?.price || 1;
         const discountedPrice = effectiveRate > 0
           ? Math.round(fullPrice * (1 - effectiveRate))
           : fullPrice;
+        console.log('[checkout] item', item.productId, 'found=', !!prod, 'fullPrice=', fullPrice, 'unit_price=', discountedPrice);
         return {
           product_id: item.productId,
           product_name: prod?.name || `#${item.productId}`,
