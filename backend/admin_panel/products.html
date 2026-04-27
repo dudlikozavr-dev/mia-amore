@@ -181,8 +181,8 @@
         <div class="photos-row" id="photos-row"></div>
         <div class="upload-zone" id="upload-zone"
              onclick="document.getElementById('file-input').click()"
-             ondragover="e=>{e.preventDefault();this.classList.add('drag')}"
-             ondragleave="e=>{this.classList.remove('drag')}"
+             ondragover="event.preventDefault();this.classList.add('drag')"
+             ondragleave="this.classList.remove('drag')"
              ondrop="handleDrop(event)">
           Нажмите или перетащите фото (JPEG, PNG, WebP, до 10 МБ)
         </div>
