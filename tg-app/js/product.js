@@ -269,7 +269,9 @@ const Product = {
     // Анимация кнопки «Добавлено»
     TG.disableMainButton('Добавлено ✓');
     setTimeout(() => {
-      TG.enableMainButton(`В корзину — ${Product._fmt(p.price)}`);
+      if (Router.current === 'product') {
+        TG.enableMainButton(`В корзину — ${Product._fmt(p.price)}`);
+      }
     }, 1500);
   },
 
