@@ -82,7 +82,16 @@ class OrderIn(BaseModel):
     delivery_method: str   # cdek | post
     payment_method: str    # cod | online
 
+    discount_amount: int = 0  # скидка в рублях (0 = нет скидки)
+
     items: list[OrderItemIn]
+
+    @field_validator("discount_amount")
+    @classmethod
+    def discount_non_negative(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("discount_amount должно быть >= 0")
+        return v
 
     @field_validator("delivery_method")
     @classmethod
@@ -152,10 +161,11 @@ async def _upsert_buyer(
     return buyer.id
 
 
-def _calculate_totals(items: list[OrderItemIn], delivery_method: str) -> tuple[int, int, int]:
+def _calculate_totals(items: list[OrderItemIn], delivery_method: str, discount_amount: int = 0) -> tuple[int, int, int, int]:
     subtotal = sum(i.unit_price * i.qty for i in items)
     delivery_cost = 0 if subtotal >= FREE_DELIVERY_THRESHOLD else DELIVERY_COST.get(delivery_method, 300)
-    return subtotal, delivery_cost, subtotal + delivery_cost
+    total = max(0, subtotal - discount_amount) + delivery_cost
+    return subtotal, delivery_cost, discount_amount, total
 
 
 def _normalize_phone_e164(phone: str) -> str:
@@ -170,13 +180,17 @@ def _normalize_phone_e164(phone: str) -> str:
 
 def _build_yookassa_receipt(body: "OrderIn", delivery_cost: int) -> dict:
     """Собирает чек ЮКассы для 54-ФЗ (provider_data)."""
+    subtotal = sum(i.unit_price * i.qty for i in body.items)
+    effective_rate = body.discount_amount / subtotal if subtotal > 0 and body.discount_amount > 0 else 0
+
     receipt_items = []
     for item in body.items:
+        discounted_price = round(item.unit_price * (1 - effective_rate), 2)
         receipt_items.append({
             "description": (item.product_name or "Товар")[:128],
             "quantity": str(item.qty),
             "amount": {
-                "value": f"{item.unit_price:.2f}",
+                "value": f"{discounted_price:.2f}",
                 "currency": "RUB",
             },
             "vat_code": settings.yookassa_vat_code,
@@ -215,6 +229,7 @@ async def _persist_order(
     buyer_id: int | None,
     subtotal: int,
     delivery_cost: int,
+    discount_amount: int,
     total: int,
     *,
     status: str = "new",
@@ -224,6 +239,7 @@ async def _persist_order(
         buyer_id=buyer_id,
         status=status,
         subtotal=subtotal,
+        discount_amount=discount_amount,
         delivery_cost=delivery_cost,
         total=total,
         delivery_method=body.delivery_method,
@@ -299,8 +315,8 @@ async def create_order(
     _: dict = Depends(require_init_data),
 ):
     buyer_id = await _upsert_buyer(db, body.buyer_telegram_id, body.buyer_username, body.buyer_name)
-    subtotal, delivery_cost, total = _calculate_totals(body.items, body.delivery_method)
-    order = await _persist_order(db, body, buyer_id, subtotal, delivery_cost, total)
+    subtotal, delivery_cost, discount_amount, total = _calculate_totals(body.items, body.delivery_method, body.discount_amount)
+    order = await _persist_order(db, body, buyer_id, subtotal, delivery_cost, discount_amount, total)
     order_data = _build_order_data(order, body)
     background_tasks.add_task(_send_notifications, order.id, order_data)
     return OrderOut(id=order.id, order_number=order.order_number, total=total, status="new")
@@ -328,7 +344,7 @@ async def create_order_invoice(
         logger.error(f"invoice _upsert_buyer error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Покупатель: {type(e).__name__}: {e}")
 
-    subtotal, delivery_cost, total = _calculate_totals(body.items, body.delivery_method)
+    subtotal, delivery_cost, discount_amount, total = _calculate_totals(body.items, body.delivery_method, body.discount_amount)
 
     # Flush order first to get the ID needed for the invoice payload.
     # get_db rolls back automatically if create_invoice_link raises below.
@@ -336,13 +352,15 @@ async def create_order_invoice(
     # Факт оплаты отслеживается отдельной колонкой payment_status.
     try:
         order = await _persist_order(
-            db, body, buyer_id, subtotal, delivery_cost, total, status="new"
+            db, body, buyer_id, subtotal, delivery_cost, discount_amount, total, status="new"
         )
     except Exception as e:
         logger.error(f"invoice _persist_order error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Сохранение заказа: {type(e).__name__}: {e}")
 
     prices = [LabeledPrice("Товары", subtotal * 100)]
+    if discount_amount > 0:
+        prices.append(LabeledPrice("Скидка", -discount_amount * 100))
     if delivery_cost > 0:
         prices.append(LabeledPrice(f"Доставка ({DELIVERY_LABELS.get(body.delivery_method, '')})", delivery_cost * 100))
 
@@ -383,8 +401,8 @@ async def create_web_order(
     _: str = Depends(require_api_key),
 ):
     buyer_id = await _upsert_buyer(db, body.buyer_telegram_id, body.buyer_username, body.buyer_name)
-    subtotal, delivery_cost, total = _calculate_totals(body.items, body.delivery_method)
-    order = await _persist_order(db, body, buyer_id, subtotal, delivery_cost, total)
+    subtotal, delivery_cost, discount_amount, total = _calculate_totals(body.items, body.delivery_method, body.discount_amount)
+    order = await _persist_order(db, body, buyer_id, subtotal, delivery_cost, discount_amount, total)
     order_data = _build_order_data(order, body)
     background_tasks.add_task(_send_notifications, order.id, order_data)
     return OrderOut(id=order.id, order_number=order.order_number, total=total, status="new")
