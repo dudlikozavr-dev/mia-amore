@@ -620,6 +620,36 @@
   border-color: var(--danger);
 }
 
+.input-phone-wrap {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.input-phone-wrap .input {
+  margin-bottom: 0;
+  padding-right: 48px;
+}
+
+.btn-share-phone {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: opacity 150ms;
+}
+
+.btn-share-phone:active { opacity: 0.6; }
+
 /* Карточки выбора (доставка/оплата) */
 .option-cards {
   display: flex;

@@ -126,11 +126,11 @@ const TG = {
   /** Запросить контакт */
   requestContact() {
     return new Promise(resolve => {
-      if (tg?.requestContact) {
-        tg.requestContact(resolve);
-      } else {
-        resolve(null);
-      }
+      if (!tg?.requestContact) { resolve(null); return; }
+      tg.requestContact(shared => {
+        if (!shared) { resolve(null); return; }
+        resolve(tg.initDataUnsafe?.contact || null);
+      });
     });
   }
 };

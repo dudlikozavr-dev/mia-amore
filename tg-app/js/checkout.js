@@ -31,6 +31,18 @@ const Checkout = {
       Checkout._payment = card.dataset.payment;
     });
 
+    // Кнопка «Поделиться номером из Telegram»
+    document.getElementById('btn-share-phone').addEventListener('click', async () => {
+      TG.hapticLight();
+      const contact = await TG.requestContact();
+      if (contact?.phone_number) {
+        const phone = contact.phone_number.startsWith('+') ? contact.phone_number : '+' + contact.phone_number;
+        document.getElementById('input-phone').value = phone;
+        document.getElementById('input-phone').classList.remove('input--error');
+        Checkout._checkForm();
+      }
+    });
+
     // Валидация при вводе
     ['input-name', 'input-phone', 'input-city', 'input-address'].forEach(id => {
       document.getElementById(id).addEventListener('input', () => {
