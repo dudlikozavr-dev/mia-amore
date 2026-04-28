@@ -91,7 +91,7 @@ async def cmd_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await update.message.reply_text(
         _format_order_detail(order, items),
-        reply_markup=_order_keyboard(order.id, order.status),
+        reply_markup=_order_keyboard(order.order_number, order.status),
     )
 
 
@@ -121,8 +121,8 @@ async def callback_order_action(update: Update, context: ContextTypes.DEFAULT_TY
 
     for prefix, new_status in action_map.items():
         if data.startswith(f"{prefix}_"):
-            order_id = int(data.split("_", 1)[1])
-            await _change_order_status(query, order_id, new_status)
+            order_number = data.split("_", 1)[1]
+            await _change_order_status(query, order_number, new_status)
             return
 
 
@@ -174,7 +174,7 @@ async def _send_orders_list_via_callback(query, status_filter: str | None) -> No
     await query.edit_message_text("\n".join(lines))
 
 
-async def _change_order_status(query, order_id: int, new_status: str) -> None:
+async def _change_order_status(query, order_number: str, new_status: str) -> None:
     from app.database import AsyncSessionLocal
     from app.models.order import Order
     from app.models.buyer import Buyer
@@ -182,11 +182,11 @@ async def _change_order_status(query, order_id: int, new_status: str) -> None:
     from sqlalchemy import select
 
     async with AsyncSessionLocal() as db:
-        result = await db.execute(select(Order).where(Order.id == order_id))
+        result = await db.execute(select(Order).where(Order.order_number == f"#{order_number}"))
         order = result.scalar_one_or_none()
 
         if not order:
-            await query.edit_message_text(f"Заказ #{order_id} не найден")
+            await query.edit_message_text(f"Заказ #{order_number} не найден")
             return
 
         old_status = order.status
@@ -246,21 +246,22 @@ def _format_order_detail(order, items: list) -> str:
     )
 
 
-def _order_keyboard(order_id: int, current_status: str) -> InlineKeyboardMarkup:
+def _order_keyboard(order_number: str, current_status: str) -> InlineKeyboardMarkup:
     """Кнопки действий для конкретного заказа."""
+    num = order_number.lstrip('#')
     buttons = []
     if current_status == "new":
         buttons.append([
-            InlineKeyboardButton("✅ Подтвердить", callback_data=f"confirm_{order_id}"),
-            InlineKeyboardButton("❌ Отменить", callback_data=f"cancel_{order_id}"),
+            InlineKeyboardButton("✅ Подтвердить", callback_data=f"confirm_{num}"),
+            InlineKeyboardButton("❌ Отменить", callback_data=f"cancel_{num}"),
         ])
         buttons.append([
-            InlineKeyboardButton("📦 Отправлен", callback_data=f"ship_{order_id}"),
+            InlineKeyboardButton("📦 Отправлен", callback_data=f"ship_{num}"),
         ])
     elif current_status == "confirmed":
         buttons.append([
-            InlineKeyboardButton("📦 Отправлен", callback_data=f"ship_{order_id}"),
-            InlineKeyboardButton("❌ Отменить", callback_data=f"cancel_{order_id}"),
+            InlineKeyboardButton("📦 Отправлен", callback_data=f"ship_{num}"),
+            InlineKeyboardButton("❌ Отменить", callback_data=f"cancel_{num}"),
         ])
     return InlineKeyboardMarkup(buttons) if buttons else None
 

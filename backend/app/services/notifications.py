@@ -67,14 +67,15 @@ async def notify_admin_new_order(order_data: dict) -> bool:
 
     text = _build_order_message(order_data)
 
-    # Кнопки управления заказом
+    # Кнопки управления заказом (используем order_number, а не DB id — стабильнее)
+    order_num = order_data['order_number'].lstrip('#')
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ Подтвердить", callback_data=f"confirm_{order_data['order_id']}"),
-            InlineKeyboardButton("❌ Отменить", callback_data=f"cancel_{order_data['order_id']}"),
+            InlineKeyboardButton("✅ Подтвердить", callback_data=f"confirm_{order_num}"),
+            InlineKeyboardButton("❌ Отменить", callback_data=f"cancel_{order_num}"),
         ],
         [
-            InlineKeyboardButton("📦 Отправлен", callback_data=f"ship_{order_data['order_id']}"),
+            InlineKeyboardButton("📦 Отправлен", callback_data=f"ship_{order_num}"),
         ],
     ])
 
