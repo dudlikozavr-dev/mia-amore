@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Доставка и возврат — Mia-Amore</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #1a1a1a;
+      background: #f9f7f5;
+      padding: 24px 16px 60px;
+    }
+
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+
+    .logo { font-size: 22px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #888; margin-bottom: 28px; }
+
+    h1 { font-size: 20px; font-weight: 700; color: #2d2d2d; margin-bottom: 28px; }
+
+    h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #2d2d2d;
+      margin: 28px 0 10px;
+      padding-left: 12px;
+      border-left: 3px solid #c9a87c;
+    }
+
+    p { margin-bottom: 10px; color: #444; }
+
+    ul { margin: 8px 0 12px 20px; color: #444; }
+    ul li { margin-bottom: 6px; }
+
+    .card {
+      background: #f5f0ea;
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin: 12px 0;
+      font-size: 14px;
+      color: #555;
+      line-height: 1.8;
+    }
+
+    .card strong { color: #2d2d2d; display: block; margin-bottom: 4px; }
+
+    .delivery-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .delivery-card {
+      background: #f5f0ea;
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 14px;
+    }
+
+    .delivery-card__name {
+      font-weight: 700;
+      color: #2d2d2d;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .delivery-card__price {
+      color: #c9a87c;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .delivery-card__days { color: #888; font-size: 13px; }
+
+    .badge {
+      display: inline-block;
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      margin-bottom: 8px;
+    }
+
+    a { color: #c9a87c; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .footer {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      font-size: 13px;
+      color: #aaa;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .wrap { padding: 24px 16px; }
+      .delivery-options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="logo">Mia-Amore</div>
+  <div class="subtitle">Магазин домашней одежды</div>
+
+  <h1>Доставка и возврат</h1>
+
+  <h2>Способы доставки</h2>
+
+  <div class="delivery-options">
+    <div class="delivery-card">
+      <div class="delivery-card__name">СДЭК</div>
+      <div class="delivery-card__price">от 300 ₽</div>
+      <div class="delivery-card__days">3–5 рабочих дней</div>
+    </div>
+    <div class="delivery-card">
+      <div class="delivery-card__name">Почта России</div>
+      <div class="delivery-card__price">от 250 ₽</div>
+      <div class="delivery-card__days">5–10 рабочих дней</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="badge">Бесплатно</span><br>
+    При заказе от <strong style="display:inline">3 000 ₽</strong> доставка бесплатна по всей России.
+  </div>
+
+  <h2>Сроки обработки заказа</h2>
+  <p>Заказы обрабатываются в рабочие дни с 9:00 до 18:00 (МСК). После подтверждения заказа мы свяжемся с вами в Telegram и сообщим трек-номер отправления.</p>
+  <ul>
+    <li>Обработка заказа: 1–2 рабочих дня</li>
+    <li>Упаковка и передача в службу доставки: 1 рабочий день</li>
+  </ul>
+
+  <h2>Отслеживание заказа</h2>
+  <p>Трек-номер для отслеживания отправляется в Telegram-боте после передачи посылки в службу доставки. Статус заказа можно проверить:</p>
+  <ul>
+    <li>СДЭК: на сайте <a href="https://www.cdek.ru" target="_blank">cdek.ru</a></li>
+    <li>Почта России: на сайте <a href="https://www.pochta.ru" target="_blank">pochta.ru</a></li>
+  </ul>
+
+  <h2>Условия возврата</h2>
+  <p>Вы можете вернуть товар в течение <strong>14 дней</strong> с момента получения в соответствии с Законом о защите прав потребителей (ст. 26.1 ФЗ № 2300-1).</p>
+
+  <p><strong>Условия возврата:</strong></p>
+  <ul>
+    <li>Товар не был в употреблении</li>
+    <li>Сохранены товарный вид, потребительские свойства, пломбы и ярлыки</li>
+    <li>Имеется чек или иное подтверждение оплаты</li>
+  </ul>
+
+  <h2>Как оформить возврат</h2>
+  <ol style="margin: 8px 0 12px 20px; color: #444;">
+    <li style="margin-bottom:6px">Напишите нам в Telegram — <a href="https://t.me/sikretsweet_home_bot">@sikretsweet_home_bot</a></li>
+    <li style="margin-bottom:6px">Укажите номер заказа и причину возврата</li>
+    <li style="margin-bottom:6px">Мы согласуем способ возврата и отправим реквизиты</li>
+    <li style="margin-bottom:6px">Деньги возвращаются в течение 10 рабочих дней после получения товара</li>
+  </ol>
+
+  <h2>Обмен товара</h2>
+  <p>Обмен на другой размер или цвет возможен при наличии нужного товара на складе. Для оформления обмена свяжитесь с нами в Telegram.</p>
+
+  <div class="card">
+    <strong>Контакты для вопросов по доставке:</strong>
+    Telegram: <a href="https://t.me/sikretsweet_home_bot">@sikretsweet_home_bot</a><br>
+    Email: <a href="mailto:elen_ka_09@mail.ru">elen_ka_09@mail.ru</a><br>
+    Телефон: <a href="tel:+79162688448">+7 (916) 268-84-48</a>
+  </div>
+
+  <div class="footer">
+    © 2026 Mia-Amore · ИП Дмитриева Е.А.
+  </div>
+
+</div>
+</body>
+</html>

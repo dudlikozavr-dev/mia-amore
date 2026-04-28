@@ -31,6 +31,47 @@ const BottomSheet = {
   }
 };
 
+/* --- Боковое меню --- */
+
+const Sidebar = {
+  _base: null,
+
+  open() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  },
+
+  close() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  },
+
+  _openPage(file) {
+    this.close();
+    const url = this._base + file;
+    if (window.Telegram?.WebApp?.openLink) {
+      window.Telegram.WebApp.openLink(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  },
+
+  init() {
+    const path = window.location.pathname;
+    this._base = window.location.origin + path.substring(0, path.lastIndexOf('/') + 1);
+
+    document.getElementById('btn-menu').addEventListener('click', () => {
+      TG.hapticLight();
+      this.open();
+    });
+    document.getElementById('btn-sidebar-close').addEventListener('click', () => this.close());
+    document.getElementById('sidebar-overlay').addEventListener('click', () => this.close());
+    document.getElementById('sidebar-delivery').addEventListener('click', () => this._openPage('delivery.html'));
+    document.getElementById('sidebar-consent').addEventListener('click', () => this._openPage('consent.html'));
+    document.getElementById('sidebar-privacy').addEventListener('click', () => this._openPage('privacy.html'));
+  }
+};
+
 /* --- Онбординг (показывается один раз) --- */
 
 const Onboarding = {
@@ -115,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 4. Инициализация всех экранов
+  Sidebar.init();
   Catalog.init();
   Favorites.init();
   Profile.init();

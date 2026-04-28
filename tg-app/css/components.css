@@ -1404,3 +1404,121 @@
   font-weight: 600;
   color: var(--text);
 }
+
+/* ===== БОКОВОЕ МЕНЮ ===== */
+
+.header__menu-btn {
+  width: var(--tap-size);
+  height: var(--tap-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 150ms;
+}
+
+.header__menu-btn:active {
+  background: var(--surface);
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 200;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--duration) var(--ease), visibility var(--duration);
+}
+
+.sidebar-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  max-width: 82vw;
+  background: var(--bg);
+  z-index: 201;
+  transform: translateX(-100%);
+  transition: transform var(--duration) var(--ease);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 20px;
+  height: var(--header-h);
+  border-bottom: 1px solid var(--surface);
+}
+
+.sidebar__logo {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.3px;
+}
+
+.sidebar__close {
+  width: var(--tap-size);
+  height: var(--tap-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--hint);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 150ms;
+}
+
+.sidebar__close:active {
+  background: var(--surface);
+}
+
+.sidebar__nav {
+  padding: 8px 0;
+}
+
+.sidebar__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.sidebar__nav-item:active {
+  background: var(--surface);
+}
+
+.sidebar__nav-item svg {
+  flex-shrink: 0;
+  color: var(--hint);
+}

@@ -12,7 +12,7 @@
        Проверяет версию сборки в localStorage — при новом деплое делает один редирект. -->
   <script>
     (function () {
-      var BUILD = '33';
+      var BUILD = '34';
       var KEY = '_app_v';
       if (localStorage.getItem(KEY) !== BUILD) {
         localStorage.setItem(KEY, BUILD);
@@ -25,9 +25,9 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <!-- Стили -->
-  <link rel="stylesheet" href="css/theme.css?v=33">
-  <link rel="stylesheet" href="css/base.css?v=33">
-  <link rel="stylesheet" href="css/components.css?v=33">
+  <link rel="stylesheet" href="css/theme.css?v=34">
+  <link rel="stylesheet" href="css/base.css?v=34">
+  <link rel="stylesheet" href="css/components.css?v=34">
 </head>
 <body>
 
@@ -38,6 +38,11 @@
 
     <!-- Шапка -->
     <header class="header">
+      <button class="header__menu-btn" id="btn-menu" aria-label="Меню">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
       <span class="header__title">Mia-Amore</span>
       <div class="header__actions">
 <button class="header__cart-btn" id="btn-open-cart" aria-label="Корзина">
@@ -491,19 +496,54 @@
     </div>
   </div>
 
+  <!-- ============================================
+       БОКОВОЕ МЕНЮ (SIDEBAR)
+       ============================================ -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__header">
+      <span class="sidebar__logo">Mia-Amore</span>
+      <button class="sidebar__close" id="btn-sidebar-close" aria-label="Закрыть">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <nav class="sidebar__nav">
+      <button class="sidebar__nav-item" id="sidebar-delivery">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+        Доставка и возврат
+      </button>
+      <button class="sidebar__nav-item" id="sidebar-consent">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>
+        </svg>
+        Согласие на обработку данных
+      </button>
+      <button class="sidebar__nav-item" id="sidebar-privacy">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Политика конфиденциальности
+      </button>
+    </nav>
+  </aside>
+
   <!-- Скрипты -->
-  <script src="js/api.js?v=33"></script>
-  <script src="js/telegram.js?v=33"></script>
-  <script src="js/router.js?v=33"></script>
-  <script src="js/store.js?v=33"></script>
-  <script src="js/catalog.js?v=33"></script>
-  <script src="js/favorites.js?v=33"></script>
-  <script src="js/profile.js?v=33"></script>
-  <script src="js/bottomnav.js?v=33"></script>
-  <script src="js/product.js?v=33"></script>
-  <script src="js/cart.js?v=33"></script>
-  <script src="js/checkout.js?v=33"></script>
-  <script src="js/success.js?v=33"></script>
-  <script src="js/app.js?v=33"></script>
+  <script src="js/api.js?v=34"></script>
+  <script src="js/telegram.js?v=34"></script>
+  <script src="js/router.js?v=34"></script>
+  <script src="js/store.js?v=34"></script>
+  <script src="js/catalog.js?v=34"></script>
+  <script src="js/favorites.js?v=34"></script>
+  <script src="js/profile.js?v=34"></script>
+  <script src="js/bottomnav.js?v=34"></script>
+  <script src="js/product.js?v=34"></script>
+  <script src="js/cart.js?v=34"></script>
+  <script src="js/checkout.js?v=34"></script>
+  <script src="js/success.js?v=34"></script>
+  <script src="js/app.js?v=34"></script>
 </body>
 </html>
