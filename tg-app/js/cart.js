@@ -132,8 +132,8 @@ const Cart = {
 
     // Подсказка о бесплатной доставке
     const hint = document.getElementById('cart-free-delivery-hint');
-    if (subtotal < 3000 && subtotal > 0) {
-      const remaining = 3000 - subtotal;
+    if (subtotal < 5000 && subtotal > 0) {
+      const remaining = 5000 - subtotal;
       hint.textContent = `Добавьте ещё на ${Cart._fmt(remaining)} — доставка бесплатно`;
       hint.hidden = false;
     } else {

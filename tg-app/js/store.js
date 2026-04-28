@@ -122,7 +122,7 @@ const Store = {
   /** Стоимость доставки */
   getDelivery(method) {
     const subtotal = Store.getSubtotal();
-    if (subtotal >= 3000) return 0;
+    if (subtotal >= 5000) return 0;
     return method === 'post' ? 250 : 300;
   },
 
