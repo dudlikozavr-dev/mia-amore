@@ -265,14 +265,8 @@ const Product = {
     Store.add(p.id, Product._size, color);
 
     TG.hapticSuccess();
-
-    // Анимация кнопки «Добавлено»
     TG.disableMainButton('Добавлено ✓');
-    setTimeout(() => {
-      if (Router.current === 'product') {
-        TG.enableMainButton(`В корзину — ${Product._fmt(p.price)}`);
-      }
-    }, 1500);
+    setTimeout(() => Router.go('cart'), 800);
   },
 
   /** Заполнить таблицу размеров данными текущего товара */
