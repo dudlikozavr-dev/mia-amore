@@ -2,7 +2,7 @@
 
 ## Адрес панели
 
-**Продакшн:** https://mia-amore-production.up.railway.app/admin
+**Продакшн:** https://app.sikretsweet.ru/admin
 
 **Локально (для разработки):**
 1. Запустить бэкенд:
@@ -15,12 +15,15 @@
 
 ## Вход
 
-При открытии панели появляется окно «Введите токен».
+Вход — двухэтапный:
 
-**Токен:** значение переменной `ADMIN_API_TOKEN` из `.env` (локально) или из Railway Variables (продакшн).
+1. **Basic Auth (nginx)** — браузер показывает стандартное окно «Войти»:
+   - Логин: `admin`
+   - Пароль: htpasswd-пароль (задаётся командой `htpasswd /etc/nginx/.htpasswd admin` на VPS)
 
-- Посмотреть локально: файл [backend/.env](backend/.env) → строка `ADMIN_API_TOKEN=...`
-- Посмотреть в проде: Railway → проект `mia-amore` → Variables → `ADMIN_API_TOKEN`
+2. **ADMIN_API_TOKEN** — после Basic Auth появляется форма «Введите Bearer-токен»:
+   - Посмотреть в проде: `grep ADMIN_API_TOKEN /home/deploy/mia-amore/backend/.env`
+   - Посмотреть локально: файл [backend/.env](backend/.env) → строка `ADMIN_API_TOKEN=...`
 
 Токен сохраняется в localStorage браузера — вводится один раз на устройство.
 
@@ -71,6 +74,7 @@
 
 ## Troubleshooting
 
-- **«Нет доступа» (403)** — неправильный токен. Очистить localStorage (F12 → Application → Local Storage → удалить `admin_token`), ввести заново.
-- **«Админский токен не настроен» (503)** — в env не задан `ADMIN_API_TOKEN`. Задать на Railway и перезапустить.
-- **Панель не открывается** — проверить `https://mia-amore-production.up.railway.app/health`. Если не отвечает — бэкенд упал, смотреть логи в Railway.
+- **Браузер показывает 401 / не пускает на Basic Auth** — неправильный htpasswd-пароль. Сбросить: `htpasswd /etc/nginx/.htpasswd admin` на VPS.
+- **«Нет доступа» (403)** — неправильный ADMIN_API_TOKEN. Очистить localStorage (F12 → Application → Local Storage → удалить `admin_token`), ввести заново.
+- **«Админский токен не настроен» (503)** — в env не задан `ADMIN_API_TOKEN`. Задать в `/home/deploy/mia-amore/backend/.env` на VPS и перезапустить: `systemctl restart miamore.service`.
+- **Панель не открывается** — проверить `https://app.sikretsweet.ru/health`. Если не отвечает — бэкенд упал, смотреть логи: `journalctl -u miamore.service -n 50`.
