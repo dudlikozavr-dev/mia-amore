@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["public"])
 
 DELIVERY_COST = {"cdek": 300, "post": 250}
-FREE_DELIVERY_THRESHOLD = 3000
+FREE_DELIVERY_THRESHOLD = 5000
 DELIVERY_LABELS = {"cdek": "СДЭК", "post": "Почта России"}
 
 
@@ -358,9 +358,9 @@ async def create_order_invoice(
         logger.error(f"invoice _persist_order error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Сохранение заказа: {type(e).__name__}: {e}")
 
-    prices = [LabeledPrice("Товары", subtotal * 100)]
-    if discount_amount > 0:
-        prices.append(LabeledPrice("Скидка", -discount_amount * 100))
+    net_subtotal = subtotal - discount_amount
+    label = f"Товары (скидка −{discount_amount} ₽)" if discount_amount > 0 else "Товары"
+    prices = [LabeledPrice(label, net_subtotal * 100)]
     if delivery_cost > 0:
         prices.append(LabeledPrice(f"Доставка ({DELIVERY_LABELS.get(body.delivery_method, '')})", delivery_cost * 100))
 
