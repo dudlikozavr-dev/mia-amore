@@ -14,11 +14,23 @@ Inline callbacks (кнопки из уведомления о новом зак�
 import logging
 
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.error import BadRequest, TelegramError
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, PreCheckoutQueryHandler, MessageHandler, filters
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+async def _safe_answer(query) -> None:
+    """query.answer() с подавлением 'Query is too old' — кнопка из старого сообщения."""
+    try:
+        await query.answer()
+    except BadRequest as e:
+        if "too old" in str(e).lower() or "query id is invalid" in str(e).lower():
+            logger.info("Skip stale callback_query: %s", e)
+        else:
+            raise
 
 # Статусы и их метки
 STATUS_LABELS = {
@@ -100,7 +112,7 @@ async def cmd_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def callback_order_action(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает кнопки confirm_N, cancel_N, ship_N, list_new, list_all"""
     query = update.callback_query
-    await query.answer()
+    await _safe_answer(query)
 
     if not _is_admin(query.from_user.id):
         return
@@ -336,7 +348,7 @@ async def handle_broadcast_message(update: Update, context: ContextTypes.DEFAULT
 async def callback_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """callback_data: broadcast_confirm / broadcast_cancel."""
     query = update.callback_query
-    await query.answer()
+    await _safe_answer(query)
     user_id = query.from_user.id
 
     if not _is_admin(user_id):
@@ -454,6 +466,17 @@ async def handle_successful_payment(update: Update, context: ContextTypes.DEFAUL
 
 # ─── Инициализация приложения бота ───────────────────────────────────────────
 
+async def _on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Глобальный обработчик ошибок PTB. Гасит шум от протухших callback_query."""
+    err = context.error
+    if isinstance(err, BadRequest) and (
+        "too old" in str(err).lower() or "query id is invalid" in str(err).lower()
+    ):
+        logger.info("Stale callback_query ignored: %s", err)
+        return
+    logger.error("PTB handler error: %s", err, exc_info=err)
+
+
 def build_application() -> Application:
     """Создаёт и настраивает PTB Application для webhook-режима."""
     token = settings.bot_token if not settings.is_dev else (settings.bot_token_test or settings.bot_token)
@@ -464,6 +487,8 @@ def build_application() -> Application:
     if settings.telegram_proxy_url:
         builder = builder.proxy(settings.telegram_proxy_url)
     app = builder.build()
+
+    app.add_error_handler(_on_error)
 
     app.add_handler(CommandHandler("start",     cmd_start))
     app.add_handler(CommandHandler("orders",    cmd_orders))
