@@ -345,6 +345,7 @@ async def create_order_invoice(
         raise HTTPException(status_code=500, detail=f"Покупатель: {type(e).__name__}: {e}")
 
     subtotal, delivery_cost, discount_amount, total = _calculate_totals(body.items, body.delivery_method, body.discount_amount)
+    logger.info(f"[invoice] discount_amount={body.discount_amount}, subtotal={subtotal}, total={total}")
 
     # Flush order first to get the ID needed for the invoice payload.
     # get_db rolls back automatically if create_invoice_link raises below.
