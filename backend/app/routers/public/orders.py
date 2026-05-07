@@ -13,6 +13,7 @@ POST /api/orders/web    — оформление заказа с внешнег�
   5. Commit  6. Ответить 201 с invoice_link
   После оплаты Telegram шлёт successful_payment в webhook → статус меняется на paid.
 """
+import asyncio
 import json
 import logging
 import re
@@ -34,6 +35,7 @@ from app.services.notifications import (
     notify_admin_new_order,
     notify_buyer_order_accepted,
 )
+from app.services.google_sheets import append_order
 
 logger = logging.getLogger(__name__)
 
@@ -290,6 +292,7 @@ def _build_order_data(order: Order, body: OrderIn) -> dict:
 # ─── Фоновые задачи ───────────────────────────────────────────────────────────
 
 async def _send_notifications(order_id: int, order_data: dict) -> None:
+    await append_order(order_data)
     success = await notify_admin_new_order(order_data)
 
     if success:
@@ -388,6 +391,8 @@ async def create_order_invoice(
         logger.error(f"create_invoice_link unexpected error: {e}", exc_info=True)
         raise HTTPException(status_code=502, detail=f"Не удалось создать платёж: {type(e).__name__}: {e}")
 
+    order_data = _build_order_data(order, body)
+    asyncio.create_task(append_order(order_data))
     # get_db commits on successful return
     return InvoiceOut(id=order.id, order_number=order.order_number, total=total, invoice_link=invoice_link)
 

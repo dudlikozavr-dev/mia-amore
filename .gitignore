@@ -1,5 +1,6 @@
 # Секреты
 .env
+backend/google-credentials.json
 
 # Vercel
 .vercel

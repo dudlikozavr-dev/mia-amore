@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     # Пример: socks5://127.0.0.1:9050 (Tor)
     telegram_proxy_url: str = ""
 
+    # Google Sheets — запись заявок
+    google_credentials_path: str = "google-credentials.json"
+    google_sheets_spreadsheet_id: str = ""
+
     # ЮКасса (Telegram Payments) — для фискального чека по 54-ФЗ
     # tax_system_code: 1 ОСН, 2 УСН доходы, 3 УСН доходы-расходы, 6 Патент
     # vat_code: 1 Без НДС, 2 НДС 0%, 3 НДС 10%, 4 НДС 20%

@@ -15,3 +15,5 @@ aiofiles==24.1.0
 pytest==8.3.3
 pytest-asyncio==0.24.0
 aiosqlite==0.20.0
+gspread==6.1.2
+google-auth==2.29.0
