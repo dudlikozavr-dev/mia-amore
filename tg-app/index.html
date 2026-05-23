@@ -8,16 +8,11 @@
   <meta http-equiv="Expires" content="0">
   <title>Mia-Amore</title>
 
-  <!-- Принудительный сброс кеша Telegram Desktop/WebView.
-       Проверяет версию сборки в localStorage — при новом деплое делает один редирект. -->
+  <!-- Версия сборки — только для отслеживания; кэш-бастинг через ?v= на ассетах ниже. -->
   <script>
     (function () {
       var BUILD = '35';
-      var KEY = '_app_v';
-      if (localStorage.getItem(KEY) !== BUILD) {
-        localStorage.setItem(KEY, BUILD);
-        location.replace(location.href.split('?')[0] + '?t=' + Date.now());
-      }
+      localStorage.setItem('_app_v', BUILD);
     })();
   </script>
 

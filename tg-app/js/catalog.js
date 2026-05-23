@@ -70,7 +70,13 @@ const Catalog = {
       Catalog._products = await fetchProducts();
       Catalog.render();
     } catch (e) {
-      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--hint)">Не удалось загрузить каталог</div>`;
+      console.error('[catalog] load error:', e);
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--hint)">
+          Не удалось загрузить каталог<br>
+          <small style="font-size:11px;opacity:0.7">${e.message || ''}</small><br>
+          <button onclick="Catalog.load()" style="margin-top:12px;padding:8px 20px;border:1px solid var(--hint);border-radius:8px;background:none;color:var(--hint);font-size:14px;cursor:pointer">Повторить</button>
+        </div>`;
     }
   },
 
