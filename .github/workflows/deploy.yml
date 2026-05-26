@@ -39,6 +39,30 @@ jobs:
             set -e
             cd /home/deploy/mia-amore
             git pull
+
+            # Один раз: добавить no-cache заголовки для index.html в nginx
+            python3 << 'PYEOF'
+            import os, subprocess
+            conf_path = '/etc/nginx/sites-available/app.sikretsweet.ru'
+            if not os.path.exists(conf_path):
+                print(f"nginx config not found: {conf_path}")
+                exit(0)
+            conf = open(conf_path).read()
+            if 'no-store' in conf:
+                print("nginx: no-cache headers already present")
+                exit(0)
+            block = '\n    location ~* index\\.html$ {\n        add_header Cache-Control "no-store, no-cache, must-revalidate";\n        expires -1;\n    }'
+            new_conf = conf.replace('server {', 'server {' + block, 1)
+            open(conf_path, 'w').write(new_conf)
+            r = subprocess.run(['nginx', '-t'], capture_output=True, text=True)
+            if r.returncode != 0:
+                open(conf_path, 'w').write(conf)
+                print("nginx -t failed, config restored:", r.stderr)
+                exit(1)
+            subprocess.run(['systemctl', 'reload', 'nginx'])
+            print("nginx: no-cache headers added and reloaded")
+            PYEOF
+
             if [ "${{ steps.changes.outputs.frontend }}" = "true" ]; then
               rsync -a --delete /home/deploy/mia-amore/tg-app/ /var/www/app.sikretsweet.ru/
               echo "Frontend synced to /var/www/app.sikretsweet.ru/"
