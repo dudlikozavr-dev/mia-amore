@@ -72,10 +72,10 @@ const Catalog = {
     } catch (e) {
       console.error('[catalog] load error:', e);
       grid.innerHTML = `
-        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--hint)">
-          Не удалось загрузить каталог<br>
-          <small style="font-size:11px;opacity:0.7">${e.message || ''}</small><br>
-          <button onclick="Catalog.load()" style="margin-top:12px;padding:8px 20px;border:1px solid var(--hint);border-radius:8px;background:none;color:var(--hint);font-size:14px;cursor:pointer">Повторить</button>
+        <div style="grid-column:1/-1;text-align:center;padding:32px 16px">
+          <div style="font-size:15px;font-weight:600;color:#e53935;margin-bottom:8px">Не удалось загрузить каталог</div>
+          <div style="font-size:12px;color:#e53935;opacity:0.85;margin-bottom:12px;word-break:break-word">${e.message || 'Нет деталей ошибки'}</div>
+          <button onclick="Catalog.load()" style="padding:10px 24px;background:#e53935;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Повторить</button>
         </div>`;
     }
   },
