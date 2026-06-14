@@ -250,7 +250,9 @@ function headers(extra={}) { return { 'Authorization': 'Bearer ' + getToken(), .
 async function apiFetch(path, opts = {}) {
   const res = await fetch(API + path, { ...opts, headers: { ...headers(), ...(opts.headers||{}) } });
   if (!res.ok) { const b = await res.json().catch(()=>({})); throw new Error(b.detail || res.status); }
-  return opts.returnRaw ? res : res.json();
+  if (opts.returnRaw) return res;
+  if (res.status === 204) return null;  // No Content — тела нет
+  return res.json();
 }
 
 async function loadCategories() {
