@@ -156,6 +156,24 @@ async def delete_product(
     await db.flush()
 
 
+@router.patch("/{product_id}/active")
+async def set_product_active(
+    product_id: int,
+    is_active: bool,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(require_admin),
+):
+    """Показать/скрыть товар одним кликом (без полного редактирования)."""
+    result = await db.execute(select(Product).where(Product.id == product_id))
+    product = result.scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=404, detail="Товар не найден")
+
+    product.is_active = is_active
+    await db.flush()
+    return {"id": product_id, "is_active": is_active}
+
+
 # ─── Фото ────────────────────────────────────────────────────────────────────
 
 @router.post("/{product_id}/images", response_model=ImageOut, status_code=status.HTTP_201_CREATED)

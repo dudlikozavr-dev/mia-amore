@@ -289,7 +289,10 @@ async function loadProducts() {
           </div>
           <div class="product-actions">
             <button class="btn btn-ghost btn-sm" style="flex:1" onclick="editProduct(${p.id})">Изменить</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id}, '${p.name}')">Скрыть</button>
+            ${p.is_active
+              ? `<button class="btn btn-danger btn-sm" onclick="toggleActive(${p.id}, false, '${p.name}')">Скрыть</button>`
+              : `<button class="btn btn-sm" style="background:#34c759;color:#fff" onclick="toggleActive(${p.id}, true, '${p.name}')">Показать</button>`
+            }
           </div>
         </div>`;
     }).join('');
@@ -439,10 +442,10 @@ async function saveProduct(e) {
   }
 }
 
-async function deleteProduct(id, name) {
-  if (!confirm(`Скрыть товар «${name}»? Он останется в базе (is_active=false).`)) return;
+async function toggleActive(id, makeActive, name) {
+  if (!makeActive && !confirm(`Скрыть товар «${name}»? Он останется в базе и пропадёт из каталога.`)) return;
   try {
-    await apiFetch(`/admin/products/${id}`, { method: 'DELETE' });
+    await apiFetch(`/admin/products/${id}/active?is_active=${makeActive}`, { method: 'PATCH' });
     loadProducts();
   } catch(e) { alert('Ошибка: ' + e.message); }
 }
